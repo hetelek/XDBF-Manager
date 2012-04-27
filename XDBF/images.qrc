@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/HiddenAchievement.png</file>
+        <file>images/IconManager.png</file>
+    </qresource>
+</RCC>

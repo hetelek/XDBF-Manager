@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BinaryDialog</class>
+ <widget class="QDialog" name="BinaryDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>469</width>
+    <height>274</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>469</width>
+    <height>274</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>469</width>
+    <height>274</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Binary Setting Entry</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTableWidget" name="tableWidget">
+     <property name="lineWidth">
+      <number>1</number>
+     </property>
+     <property name="gridStyle">
+      <enum>Qt::SolidLine</enum>
+     </property>
+     <property name="cornerButtonEnabled">
+      <bool>false</bool>
+     </property>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>25</number>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>25</number>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>23</number>
+     </attribute>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>23</number>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>00</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>01</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>02</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>03</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>04</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>05</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>06</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>07</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>08</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>09</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>0A</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>0B</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>0C</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>0D</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>0E</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>0F</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
