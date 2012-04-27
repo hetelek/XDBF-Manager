@@ -61,6 +61,7 @@ private:
     FILE *opened_file;
     vector<Entry> private_entries;
     int get_offset(unsigned int offset_specifier, Header *h);
+    int getFakeOffset(unsigned int realAddress);
     int wide_string_length(long pos);
     bool reverse;
     void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long identifier);

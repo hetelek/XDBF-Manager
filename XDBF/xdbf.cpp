@@ -104,6 +104,13 @@ int XDBF::get_offset(unsigned int offset_specifier, Header* h)
     return ((entry_table_size + free_space_size) + 24) + offset_specifier;
 }
 
+int XDBF::getFakeOffset(unsigned int realAddress)
+{
+    int entry_table_size = (h->entry_table_length * 18);
+    int free_space_size = (h->free_space_table_length * 8);
+    return (realAddress - ((entry_table_size + free_space_size) + 24));
+}
+
 FILE *XDBF::get_file()
 {
     return opened_file;
@@ -526,8 +533,6 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
 {
     h->entry_count++;
     Entry newEntry = { type, identifier, 0, dataLen };
-    private_entries.push_back(newEntry);
-    sort(private_entries.begin(), private_entries.end(), &compareFunction);
 
     //need to update sync list stuffs
 
@@ -539,24 +544,32 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
 
     //append entry to file
     fseek(opened_file, 0, SEEK_END);
+    newEntry.address = ftell(opened_file);
     fwrite(entryData, dataLen, 1, opened_file);
+
+    //add the new entry to the table
+    private_entries.push_back(newEntry);
+    sort(private_entries.begin(), private_entries.end(), &compareFunction);
 
     //re-write entry table
     for (int i = 0; i < h->entry_count; i++)
     {
-        fseek(opened_file, (h->entry_count * 0x12) + 0x18, SEEK_SET);
+        private_entries[i].address = getFakeOffset(private_entries[i].address);
 
         SwapEndian(&private_entries[i].type);
         SwapEndian(&private_entries[i].identifier);
         SwapEndian(&private_entries[i].length);
         SwapEndian(&private_entries[i].address);
 
+        fseek(opened_file, (i * 0x12) + 0x18, SEEK_SET);
         fwrite(&private_entries[i], 0x12, 1, opened_file);
 
         SwapEndian(&private_entries[i].type);
         SwapEndian(&private_entries[i].identifier);
         SwapEndian(&private_entries[i].length);
         SwapEndian(&private_entries[i].address);
+
+        private_entries[i].address = get_offset(private_entries[i].address, h);
     }
 }
 
@@ -567,12 +580,25 @@ void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long i
     int unlockedDescLen = (wcslen(entry->unlockedDescription) + 1) * 2;
 
     char *data = new char[0x1C + nameLen + lockedDescLen + unlockedDescLen];
+    wchar_t *nameCpy = new wchar_t[wcslen(entry->name)];
+    wchar_t *lockedDescCpy = new wchar_t[wcslen(entry->lockedDescription)];
+    wchar_t *unlockedDescCpy = new wchar_t[wcslen(entry->unlockedDescription)];
 
+    memcpy(nameCpy, entry->name, nameLen);
+    memcpy(lockedDescCpy, entry->lockedDescription, lockedDescLen);
+    memcpy(unlockedDescCpy, entry->unlockedDescription, unlockedDescLen);
+
+    swapAchievementEndianness(entry);
     memcpy(data, &entry->size, 0x1C);
+    swapAchievementEndianness(entry);
 
-    memcpy(&data[0x1C], entry->name, nameLen);
-    memcpy(&data[0x1C + nameLen], entry->lockedDescription, lockedDescLen);
-    memcpy(&data[0x1C + nameLen + lockedDescLen], entry->unlockedDescription, unlockedDescLen);
+    SwapEndianUnicode(nameCpy, nameLen);
+    SwapEndianUnicode(lockedDescCpy, lockedDescLen);
+    SwapEndianUnicode(unlockedDescCpy, unlockedDescLen);
+
+    memcpy(&data[0x1C], nameCpy, nameLen);
+    memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
+    memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
 
     injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
 }

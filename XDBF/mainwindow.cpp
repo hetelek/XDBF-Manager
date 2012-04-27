@@ -305,7 +305,6 @@ void MainWindow::on_pushButton_2_clicked()
     entry.id = 1337;
     entry.imageID = 1337;
     entry.gamerscore = 1337;
-    //need to make the strings the correct endianness, BIG yo
     entry.name = L"Fleck's Achievement";
     entry.lockedDescription = L"What do you think?";
     entry.unlockedDescription = L"Hm! Looks like a good effort, but I think you could improve.";
