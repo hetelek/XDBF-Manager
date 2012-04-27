@@ -32,3 +32,9 @@
 ehthumbs.db
 Icon?
 Thumbs.db
+
+# Qt Files #
+############
+*.pro
+*.pro.user
+*.autosave
