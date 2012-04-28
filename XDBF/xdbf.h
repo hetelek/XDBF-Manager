@@ -54,10 +54,14 @@ public:
     void writeEntry(Avatar_Award_Entry *e);
     void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id);
 
+    //NOT DONE!
+    void deleteEntry(Entry *entry);
+
     static std::string FILETIME_to_string(FILETIME *pft);
 
 private:
     Header h[1];
+    FreeMemoryTable table;
     FILE *opened_file;
     vector<Entry> private_entries;
     int get_offset(unsigned int offset_specifier, Header *h);

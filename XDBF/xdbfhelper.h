@@ -155,7 +155,18 @@ typedef struct
 
 struct Header
 {
-    unsigned int magic, version, entry_table_length, entry_count, free_space_table_length, free_space_table_entry_count;
+    unsigned int magic, version, entry_table_length, entry_count, free_memory_table_length, free_memory_table_entry_count;
+};
+
+struct FreeMemoryEntry
+{
+    unsigned int offsetSpecifier, length;
+};
+
+struct FreeMemoryTable
+{
+    unsigned int tableLength, entryCount;
+    FreeMemoryEntry *entries;
 };
 
 struct Entry

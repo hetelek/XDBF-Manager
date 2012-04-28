@@ -23,8 +23,8 @@ XDBF::XDBF(const char* path)
     SwapEndian(&h->magic);
     SwapEndian(&h->entry_count);
     SwapEndian(&h->entry_table_length);
-    SwapEndian(&h->free_space_table_entry_count);
-    SwapEndian(&h->free_space_table_length);
+    SwapEndian(&h->free_memory_table_entry_count);
+    SwapEndian(&h->free_memory_table_length);
     SwapEndian(&h->version);
 
     if(h->magic != 0x58444246)
@@ -45,6 +45,21 @@ XDBF::XDBF(const char* path)
 
         temp_entries[i].address = get_offset(temp_entries[i].address, h);
         private_entries.push_back(temp_entries[i]);
+    }
+
+    int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
+    fseek(opened_file, freeMemoryOffset, SEEK_SET);
+
+    table.entryCount = h->free_memory_table_entry_count - 1;
+    table.tableLength = h->free_memory_table_length;
+
+    table.entries = new FreeMemoryEntry[table.entryCount];
+    fread(table.entries, 4, table.entryCount * 2, opened_file);
+
+    for(int i = 0; i < table.entryCount; i++)
+    {
+        SwapEndian(&table.entries[i].length);
+        SwapEndian(&table.entries[i].offsetSpecifier);
     }
 
     delete[] temp_entries;
@@ -100,14 +115,14 @@ void XDBF::close()
 int XDBF::get_offset(unsigned int offset_specifier, Header* h)
 {
     int entry_table_size = (h->entry_table_length * 18);
-    int free_space_size = (h->free_space_table_length * 8);
+    int free_space_size = (h->free_memory_table_length * 8);
     return ((entry_table_size + free_space_size) + 24) + offset_specifier;
 }
 
 int XDBF::getFakeOffset(unsigned int realAddress)
 {
     int entry_table_size = (h->entry_table_length * 18);
-    int free_space_size = (h->free_space_table_length * 8);
+    int free_space_size = (h->free_memory_table_length * 8);
     return (realAddress - ((entry_table_size + free_space_size) + 24));
 }
 
@@ -532,6 +547,27 @@ void XDBF::writeEntry(Avatar_Award_Entry *entry)
 void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long identifier)
 {
     h->entry_count++;
+
+    int indexWithClosestVal = -1;
+    for(int i = 0; i < table.entryCount; i++)
+    {
+        if(table.entries[i].length == dataLen)
+        {
+            indexWithClosestVal = i;
+            break;
+        }
+        if(table.entries[i].length > dataLen)
+        {
+            if(indexWithClosestVal == -1)
+                indexWithClosestVal = i;
+            else
+            {
+                if(table.entries[indexWithClosestVal].length > table.entries[i].length)
+                    indexWithClosestVal = i;
+            }
+        }
+    }
+
     Entry newEntry = { type, identifier, 0, dataLen };
 
     //need to update sync list stuffs
@@ -601,6 +637,48 @@ void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long i
     memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
 
     injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
+}
+
+void XDBF::deleteEntry(Entry *entry)
+{
+    //NOT DONE!
+    int indexToDel = -1;
+
+    for(int i = 0; i < private_entries.size(); i++)
+        if(memcmp(&entry, &private_entries[i], sizeof(Entry)) == 0)
+        {
+            indexToDel = i;
+            break;
+        }
+
+    if(indexToDel == -1)
+    {
+        //Entry not found
+        return;
+    }
+
+    FILE *tempFile;
+    tempFile = tmpfile();
+
+    if(tempFile == NULL)
+        throw "Cannot create temporary file.";
+
+    Header hTemp = *h;
+    hTemp.entry_count = h->entry_count - 1;
+    //hTemp.
+
+    for(int i = 0; i < sizeof(Header) / 4; i++)
+        SwapEndian(&(((unsigned int*)&hTemp)[i]));
+
+    fwrite(&hTemp, sizeof(Header), 1, tempFile);
+
+    //update entry count
+    fseek(tempFile, 0xC, SEEK_SET);
+    SwapEndian(&h->entry_count);
+    fwrite(&h->entry_count, 1, 4, opened_file);
+    SwapEndian(&h->entry_count);
+
+
 }
 
 void XDBF::swapAchievementEndianness(Achievement_Entry *entry)
