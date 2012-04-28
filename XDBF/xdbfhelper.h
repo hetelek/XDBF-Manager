@@ -7,6 +7,7 @@
 #include <time.h>
 
 using std::string;
+using std::wstring;
 
 #define SYNC_LIST (unsigned long long)0x100000000
 #define SYNC_DATA (unsigned long long)0x200000000
@@ -99,7 +100,7 @@ typedef struct
         struct
         {
             unsigned long str_len_in_bytes;
-            wchar_t *str;
+            std::wstring *str;
         } unicode_string;
 
         float float_data;
@@ -126,9 +127,9 @@ typedef struct
     unsigned int gamerscore;
     unsigned int flags;
     FILETIME unlockedTime;
-    wchar_t *name;
-    wchar_t *lockedDescription;
-    wchar_t *unlockedDescription;
+    std::wstring *name;
+    std::wstring *lockedDescription;
+    std::wstring *unlockedDescription;
 
 } Achievement_Entry;
 
@@ -149,7 +150,7 @@ typedef struct
     unsigned char femaleAvaterAwardCount;
     unsigned int flags;
     FILETIME lastPlayed;
-    wchar_t *gameName;
+    std::wstring *gameName;
 
 } Title_Entry;
 
@@ -203,9 +204,9 @@ typedef struct
     unsigned int flags32; //same as achievement
     FILETIME unlockTime;
     char unknown[8];
-    wchar_t *name;
-    wchar_t *lockedDescription;
-    wchar_t *unlockedDescription;
+    std::wstring *name;
+    std::wstring *lockedDescription;
+    std::wstring *unlockedDescription;
 
 } Avatar_Award_Entry;
 

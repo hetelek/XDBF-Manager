@@ -9,7 +9,7 @@ XDBF::XDBF(const char* path)
     else
         reverse = false;
 
-    fopen_s(&opened_file, path, "rb+");
+    opened_file = new FileIO(path);
 
     if(opened_file == NULL)
     {
@@ -17,15 +17,13 @@ XDBF::XDBF(const char* path)
         throw "File could not be opened.";
     }
 
-    fseek(opened_file, 0, SEEK_SET);
-    fread(h, sizeof(Header), 1, opened_file);
-
-    SwapEndian(&h->magic);
-    SwapEndian(&h->entry_count);
-    SwapEndian(&h->entry_table_length);
-    SwapEndian(&h->free_memory_table_entry_count);
-    SwapEndian(&h->free_memory_table_length);
-    SwapEndian(&h->version);
+    opened_file->setPosition(0);
+    h->magic = opened_file->readUInt32();
+    h->entry_count = opened_file->readUInt32();
+    h->entry_table_length = opened_file->readUInt32();
+    h->free_memory_table_entry_count = opened_file->readUInt32();
+    h->free_memory_table_length = opened_file->readUInt32();
+    h->version = opened_file->readUInt32();
 
     if(h->magic != 0x58444246)
     {
@@ -33,33 +31,28 @@ XDBF::XDBF(const char* path)
     }
 
     Entry *temp_entries = new Entry[h->entry_count];
-
-    fread(temp_entries, sizeof(Entry), h->entry_count, opened_file);
-
     for(unsigned int i = 0; i < h->entry_count; i++)
     {
-        SwapEndian(&temp_entries[i].type);
-        SwapEndian(&temp_entries[i].identifier);
-        SwapEndian(&temp_entries[i].length);
-        SwapEndian(&temp_entries[i].address);
+        temp_entries[i].type = opened_file->readUInt16();
+        temp_entries[i].identifier = opened_file->readUInt64();
+        temp_entries[i].length = opened_file->readUInt32();
+        temp_entries[i].address = opened_file->readUInt32();
 
         temp_entries[i].address = get_offset(temp_entries[i].address, h);
         private_entries.push_back(temp_entries[i]);
     }
 
     int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
-    fseek(opened_file, freeMemoryOffset, SEEK_SET);
+    opened_file->setPosition(freeMemoryOffset);
 
     table.entryCount = h->free_memory_table_entry_count - 1;
     table.tableLength = h->free_memory_table_length;
 
     table.entries = new FreeMemoryEntry[table.entryCount];
-    fread(table.entries, 4, table.entryCount * 2, opened_file);
-
     for(int i = 0; i < table.entryCount; i++)
     {
-        SwapEndian(&table.entries[i].length);
-        SwapEndian(&table.entries[i].offsetSpecifier);
+        table.entries[i].length = opened_file->readUInt32();
+        table.entries[i].offsetSpecifier = opened_file->readUInt32();
     }
 
     delete[] temp_entries;
@@ -85,10 +78,9 @@ char* XDBF::extract_entry(Entry *entry)
     if(opened_file == NULL)
         throw "File has been closed/never opened.";
 
-    fseek(opened_file, entry->address, SEEK_SET);
+    opened_file->setPosition(entry->address);
     char *data = new char[entry->length];
-
-    fread(data, entry->length, sizeof(char), opened_file);
+    opened_file->read(data, entry->length);
 
     return data;
 }
@@ -108,7 +100,7 @@ void XDBF::close()
     if(opened_file == NULL)
         return;
 
-    fclose(opened_file);
+    opened_file->close();
     opened_file = NULL;
 }
 
@@ -126,7 +118,7 @@ int XDBF::getFakeOffset(unsigned int realAddress)
     return (realAddress - ((entry_table_size + free_space_size) + 24));
 }
 
-FILE *XDBF::get_file()
+FileIO *XDBF::get_file()
 {
     return opened_file;
 }
@@ -137,9 +129,9 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
         return NULL;
 
     Setting_Entry *s_entry = new Setting_Entry;
-    fseek(opened_file, entry->address + 0x8, SEEK_SET);
-    fread(&s_entry->type, 1, 1, opened_file);
-    fseek(opened_file, entry->address + 0x10, SEEK_SET);
+    opened_file->setPosition(entry->address + 0x8);
+    opened_file->read(&s_entry->type, 1);
+    opened_file->setPosition(entry->address + 0x10);
 
     wchar_t *str_temp;
     switch (s_entry->type)
@@ -149,48 +141,39 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
             break;
 
         case SET_INT32:
-            fread(&s_entry->i32_data, 4, 1, opened_file);
-            SwapEndian((unsigned int*)&s_entry->i32_data);
+            s_entry->i32_data = opened_file->readInt32();
             break;
 
         case SET_INT64:
-            fread(&s_entry->i64_data, 8, 1, opened_file);
-            SwapEndian((unsigned long long*)&s_entry->i64_data);
+            s_entry->i64_data = opened_file->readInt64();
             break;
 
         case SET_DOUBLE:
-            fread(&s_entry->double_data, 8, 1, opened_file);
-            SwapEndian((unsigned long long*)&s_entry->double_data);
+            s_entry->double_data = opened_file->readDouble();
             break;
 
         case SET_UNICODE:
-            fread(&s_entry->unicode_string.str_len_in_bytes, 4, 1, opened_file);
-            SwapEndian((unsigned int*)&s_entry->unicode_string.str_len_in_bytes);
-            fseek(opened_file, entry->address + 0x18, SEEK_SET);
-            str_temp = (wchar_t*)malloc(s_entry->unicode_string.str_len_in_bytes);
-            fread(str_temp, 1, s_entry->unicode_string.str_len_in_bytes, opened_file);
-            s_entry->unicode_string.str = str_temp;
-            SwapEndianUnicode(s_entry->unicode_string.str, s_entry->unicode_string.str_len_in_bytes);
+            s_entry->unicode_string.str_len_in_bytes = (unsigned long)opened_file->readUInt32();
+            opened_file->setPosition(entry->address + 0x18);
+            s_entry->unicode_string.str = &opened_file->readUnicodeString();
             break;
 
         case SET_FLOAT:
-            fread(&s_entry->float_data, 4, 1, opened_file);
-            SwapEndian((unsigned int*)&s_entry->float_data);
+            s_entry->float_data = opened_file->readFloat();
             break;
 
         case SET_BINARY:
             unsigned long bin_size;
-            fread(&bin_size, 4, 1, opened_file);
-            SwapEndian((unsigned int*)&bin_size);
+            bin_size = opened_file->readUInt32();
             s_entry->binary.size = bin_size;
             s_entry->binary.data = new char[bin_size];
-            fseek(opened_file, entry->address + 0x18, SEEK_SET);
-            fread(s_entry->binary.data, bin_size, 1, opened_file);
+            opened_file->setPosition(entry->address + 0x18);
+            opened_file->read(s_entry->binary.data, bin_size);
             break;
 
         case SET_DATETIME:
-            fread(&s_entry->time_stamp, 8, 1, opened_file);
-            SwapEndian(&s_entry->time_stamp, 1, 8);
+            //UINT64 fTime = opened_file->readUInt64();
+            //s_entry->time_stamp = *(FILETIME*)&fTime;
             break;
 
         case SET_NULL:
@@ -219,22 +202,11 @@ Title_Entry* XDBF::get_title_entry(Entry *entry)
         return NULL;
 
     Title_Entry *t_entry = new Title_Entry;
-    fseek(opened_file, entry->address, SEEK_SET);
-    fread(t_entry, 1, 40, opened_file);
+    opened_file->setPosition(entry->address);
+    opened_file->read(t_entry, 40);
 
-    SwapEndian((unsigned int*)&t_entry->achievementCount);
-    SwapEndian((unsigned int*)&t_entry->achievementUnlockedCount);
-    SwapEndian(&t_entry->flags);
-    SwapEndian(&t_entry->gamerscoreUnlocked);
-    SwapEndian((unsigned int*)&t_entry->lastPlayed);
-    SwapEndian(&t_entry->titleID);
-    SwapEndian(&t_entry->totalGamerscore);
-
-    wchar_t *game_name = (wchar_t*)malloc(entry->length - 0x28);
-    fseek(opened_file, (entry->address + 0x28), SEEK_SET);
-    fread(game_name, 1, (entry->length - 0x28), opened_file);
-    SwapEndianUnicode(game_name, (entry->length - 0x28));
-    t_entry->gameName = game_name;
+    opened_file->setPosition(entry->address + 0x28);
+    t_entry->gameName = &opened_file->readUnicodeString();
 
     return t_entry;
 }
@@ -246,46 +218,39 @@ Achievement_Entry* XDBF::get_achievement_entry(Entry *entry)
 
     Achievement_Entry *chiev = new Achievement_Entry;
 
-    fseek(opened_file, entry->address, SEEK_SET);
-    fread(chiev, 1, 0x1C, opened_file);
+    /*
+    unsigned int size;
+    unsigned int id;
+    unsigned int imageID;
+    unsigned int gamerscore;
+    unsigned int flags;
+    FILETIME unlockedTime;
+    wchar_t *name;
+    wchar_t *lockedDescription;
+    wchar_t *unlockedDescription;
+    */
+    opened_file->setPosition(entry->address);
+    chiev->size = opened_file->readUInt32();
+    chiev->id = opened_file->readUInt32();
+    chiev->imageID = opened_file->readUInt32();
+    chiev->gamerscore = opened_file->readUInt32();
+    chiev->flags = opened_file->readUInt32();
+    chiev->unlockedTime.dwHighDateTime = opened_file->readUInt32();
+    chiev->unlockedTime.dwLowDateTime = opened_file->readUInt32();
+    chiev->name = &opened_file->readUnicodeString();
+    chiev->lockedDescription = &opened_file->readUnicodeString();
+    chiev->unlockedDescription = &opened_file->readUnicodeString();
 
-    swapAchievementEndianness(chiev);
+    opened_file->setPosition(entry->address + 0x1C);
+    chiev->name = &opened_file->readUnicodeString();
 
-    int nameLen = wide_string_length(entry->address + 0x1C);
-    chiev->name = (wchar_t*)malloc(nameLen);
-    fseek(opened_file, entry->address + 0x1C, SEEK_SET);
-    fread(chiev->name, 1, nameLen, opened_file);
-    SwapEndianUnicode(chiev->name, nameLen);
+    opened_file->setPosition(entry->address + 0x1C + chiev->name->size());
+    chiev->lockedDescription = &opened_file->readUnicodeString();
 
-    int lockedDescLen = wide_string_length(entry->address + 0x1C + nameLen);
-    chiev->lockedDescription = (wchar_t*)malloc(lockedDescLen);
-    fseek(opened_file, entry->address + 0x1C + nameLen, SEEK_SET);
-    fread(chiev->lockedDescription, 1, lockedDescLen, opened_file);
-    SwapEndianUnicode(chiev->lockedDescription, lockedDescLen);
-
-    int unlockedDescLen = wide_string_length(entry->address + 0x1C + nameLen + lockedDescLen);
-    chiev->unlockedDescription = (wchar_t*)malloc(unlockedDescLen);
-    fseek(opened_file, entry->address + 0x1C + nameLen + lockedDescLen, SEEK_SET);
-    fread(chiev->unlockedDescription, 1, unlockedDescLen, opened_file);
-    SwapEndianUnicode(chiev->unlockedDescription, unlockedDescLen);
+    opened_file->setPosition(entry->address + 0x1C + chiev->name->size() + chiev->lockedDescription->size());
+    chiev->unlockedDescription = &opened_file->readUnicodeString();
 
     return chiev;
-}
-
-int XDBF::wide_string_length(long pos)
-{
-    fseek(opened_file, pos, SEEK_SET);
-
-    int strLen = 0;
-    for (;;)
-    {
-        wchar_t temp;
-        fread(&temp, 2, 1, opened_file);
-        if (temp != 0)
-            strLen += 2;
-        else
-            return strLen + 2;
-    }
 }
 
 Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
@@ -304,8 +269,8 @@ Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
 
     Sync_Entry *sync_entries = new Sync_Entry[syncsInList];
 
-    fseek(opened_file, syncListTarget->address, SEEK_SET);
-    fread(sync_entries, 0x10, syncsInList, opened_file);
+    opened_file->setPosition(syncListTarget->address);
+    opened_file->read(sync_entries, 0x10 * syncsInList);
 
     for(int i = 0; i < syncsInList; i++)
     {
@@ -370,8 +335,8 @@ void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus
         SwapEndian(&entry.identifier);
 
         entries.insert(entries.begin() + (highestSyncIdIndex - 1), 1, entry);
-        fseek(opened_file, list.list_entry->address, SEEK_SET);
-        fwrite(&entries.at(0), 0x10, list.entry_count, opened_file);
+        opened_file->setPosition(list.list_entry->address);
+        opened_file->write(&entries.at(0), 0x10 * list.entry_count);
     }
     else if(status == Dequeue)
     {
@@ -418,22 +383,21 @@ void XDBF::write_sync_list(Sync_List *sl)
 
     for(int i = 0; i < entries.size(); i++)
     {
-        fseek(opened_file, entr1->address + (0x10 * i), SEEK_SET);
-        fwrite(&entries.at(i), 0x10, 1, opened_file);
+        opened_file->setPosition(entr1->address + (0x10 * i));
+        opened_file->write(&entries.at(i), 0x10);
     }
 
     int startingPos = entries.size() * 0x10;
     for(int i = 0; i < queuedEntries.size(); i++)
     {
-        fseek(opened_file, entr1->address + (startingPos + (0x10 * i)), SEEK_SET);
-        fwrite(&queuedEntries.at(i), 0x10, 1, opened_file);
+        opened_file->setPosition(entr1->address + (startingPos + (0x10 * i)));
+        opened_file->write(&queuedEntries.at(i), 0x10);
     }
 
     unsigned long long next = queuedEntries.size() + 1;
     sl->sync_data.next_sync_id = next;
-    SwapEndian(&next);
-    fseek(opened_file, sl->sync_data.data_entry->address, SEEK_SET);
-    fwrite(&next, 8, 1, opened_file);
+    opened_file->setPosition(sl->sync_data.data_entry->address);
+    opened_file->writeUInt64(next);
 }
 
 Sync_Data XDBF::get_sync_data(int et_type, unsigned long long identifier)
@@ -477,8 +441,8 @@ void XDBF::writeEntry(Entry *entry, Achievement_Entry *chiev)
     SwapEndian(&temp.gamerscore);
     SwapEndian((unsigned long long*)&temp.unlockedTime);
 
-    fseek(opened_file, entry->address, SEEK_SET);
-    fwrite(&temp, 0x1C, 1, opened_file);
+    opened_file->setPosition(entry->address);
+    opened_file->write(&temp, 0x1C);
 
     update_sync_list_entry(*get_sync(ET_ACHIEVEMENT, entry->address), ET_ACHIEVEMENT, Enqueue);
 }
@@ -487,64 +451,46 @@ Avatar_Award_Entry* XDBF::get_avatar_award_entry(Entry *entry)
 {
     Avatar_Award_Entry *entryAA = new Avatar_Award_Entry;
     entryAA->entry = *entry;
-    fseek(opened_file, entry->address, SEEK_SET);
-    fread((char*)&entryAA->size, 0x2C, 1, opened_file);
+    opened_file->setPosition(entry->address);
 
-    SwapEndian(&entryAA->size);
-    SwapEndian(&entryAA->clothingType);
-    SwapEndian(&entryAA->flags64);
-    SwapEndian(&entryAA->titleID);
-    SwapEndian(&entryAA->imageID);
-    SwapEndian(&entryAA->flags32);
-    SwapEndian((unsigned long long*)&entryAA->unlockTime);
-    SwapEndian((unsigned int*)&entryAA->unknown[0]);
-    SwapEndian((unsigned int*)&entryAA->unknown[3]);
+    entryAA->size = opened_file->readUInt32();
+    entryAA->clothingType = opened_file->readUInt32();
+    entryAA->flags64 = opened_file->readUInt64();
+    entryAA->titleID = opened_file->readUInt32();
+    entryAA->imageID = opened_file->readUInt32();
+    entryAA->flags32 = opened_file->readUInt32();
+    entryAA->unlockTime.dwHighDateTime = opened_file->readUInt32();
+    entryAA->unlockTime.dwLowDateTime = opened_file->readUInt32();
+    entryAA->unknown[0] = opened_file->readUInt32();
+    entryAA->unknown[3] = opened_file->readUInt32();
 
-    unsigned long temp = entryAA->unlockTime.dwHighDateTime;
-    entryAA->unlockTime.dwHighDateTime = entryAA->unlockTime.dwLowDateTime;
-    entryAA->unlockTime.dwLowDateTime = temp;
+    opened_file->setPosition(entry->address + 0x2C);
+    entryAA->name = &opened_file->readUnicodeString();
+    int nameLen = entryAA->name->size();
 
-    int nameLen = wide_string_length(entry->address + 0x2C);
-    entryAA->name = (wchar_t*)malloc(nameLen);
-    fseek(opened_file, entry->address + 0x2C, SEEK_SET);
-    fread(entryAA->name, 1, nameLen, opened_file);
-    SwapEndianUnicode(entryAA->name, nameLen);
+    opened_file->setPosition(entry->address + 0x2C + nameLen);
+    entryAA->unlockedDescription = &opened_file->readUnicodeString();
+    int unlockedDescLen = entryAA->unlockedDescription->size();
 
-    int unlockedDescLen = wide_string_length(entry->address + 0x2C + nameLen);
-    entryAA->unlockedDescription = (wchar_t*)malloc(unlockedDescLen);
-    fseek(opened_file, entry->address + 0x2C + nameLen, SEEK_SET);
-    fread(entryAA->unlockedDescription, 1, unlockedDescLen, opened_file);
-    SwapEndianUnicode(entryAA->unlockedDescription, unlockedDescLen);
-
-    int lockedDescLen = wide_string_length(entry->address + 0x2C + nameLen + unlockedDescLen);
-    entryAA->lockedDescription = (wchar_t*)malloc(lockedDescLen);
-    fseek(opened_file, entry->address + 0x2C + nameLen + unlockedDescLen, SEEK_SET);
-    fread(entryAA->lockedDescription, 1, lockedDescLen, opened_file);
-    SwapEndianUnicode(entryAA->lockedDescription, lockedDescLen);
+    opened_file->setPosition(entry->address + 0x2C + nameLen + unlockedDescLen);
+    entryAA->lockedDescription = &opened_file->readUnicodeString();
 
     return entryAA;
 }
 
 void XDBF::writeEntry(Avatar_Award_Entry *entry)
 {
-    Avatar_Award_Entry temp = *entry;
-    SwapEndian(&temp.size);
-    SwapEndian(&temp.clothingType);
-    SwapEndian(&temp.flags64);
-    SwapEndian(&temp.titleID);
-    SwapEndian(&temp.imageID);
-    SwapEndian(&temp.flags32);
-    SwapEndian((unsigned long long*)&temp.unlockTime);
-
-    unsigned long tempLong = temp.unlockTime.dwHighDateTime;
-    temp.unlockTime.dwHighDateTime = temp.unlockTime.dwLowDateTime;
-    temp.unlockTime.dwLowDateTime = tempLong;
-
-    fseek(opened_file, temp.entry.address, SEEK_SET);
-    fwrite(&temp.size, 0x2C, 1, opened_file);
+    opened_file->setPosition(entry->entry.address);
+    opened_file->writeUInt32(entry->size);
+    opened_file->writeUInt32(entry->clothingType);
+    opened_file->writeUInt64(entry->flags64);
+    opened_file->writeUInt32(entry->titleID);
+    opened_file->writeUInt32(entry->imageID);
+    opened_file->writeUInt32(entry->flags32);
+    opened_file->writeUInt64(*(UINT64*)&entry->unlockTime);
 }
 
-void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long identifier)
+void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen)
 {
     h->entry_count++;
 
@@ -568,7 +514,7 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
         }
     }
 
-    Entry newEntry = { type, identifier, 0, dataLen };
+    Entry newEntry = { type, 0, 0, dataLen };
 
     //need to update sync list stuffs
 
@@ -609,11 +555,26 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     }
 }
 
-void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
+void XDBF::injectAchievementEntry(Achievement_Entry *entry)
 {
     int nameLen = (wcslen(entry->name) + 1) * 2;
     int lockedDescLen = (wcslen(entry->lockedDescription) + 1) * 2;
     int unlockedDescLen = (wcslen(entry->unlockedDescription) + 1) * 2;
+
+    if (entry->id == 0)
+    {
+        int maxId = private_entries[0].identifier, maxImageID = private_entries[0].identifier;
+        for (int i = 0; i < private_entries.size(); i++)
+        {
+            if (maxId < private_entries[i].identifier && private_entries[i].type == ET_ACHIEVEMENT)
+                maxId = private_entries[i].identifier;
+            else if (maxImageID < private_entries[i].identifier && private_entries[i].type == ET_IMAGE)
+                maxImageID = private_entries[i].identifier;
+        }
+        entry->id = maxId;
+    }
+
+    entry->size = 0x1C;
 
     char *data = new char[0x1C + nameLen + lockedDescLen + unlockedDescLen];
     wchar_t *nameCpy = new wchar_t[wcslen(entry->name)];
@@ -636,7 +597,7 @@ void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long i
     memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
     memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
 
-    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
+    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen);
 }
 
 void XDBF::deleteEntry(Entry *entry)
@@ -679,16 +640,6 @@ void XDBF::deleteEntry(Entry *entry)
     SwapEndian(&h->entry_count);
 
 
-}
-
-void XDBF::swapAchievementEndianness(Achievement_Entry *entry)
-{
-    SwapEndian(&entry->size);
-    SwapEndian(&entry->id);
-    SwapEndian(&entry->imageID);
-    SwapEndian(&entry->gamerscore);
-    SwapEndian(&entry->flags);
-    SwapEndian((unsigned long long*)&entry->unlockedTime);
 }
 
 //for sorting entries

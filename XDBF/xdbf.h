@@ -8,6 +8,7 @@
 #include <xdbfhelper.h>
 #include <time.h>
 #include <vector>
+#include "FileIO.h"
 
 using std::string;
 using std::vector;
@@ -38,7 +39,7 @@ public:
     char* extract_entry(Entry *entry);
     Entry* get_entry_by_id(long long identifier, int type);
     Header* get_header();
-    FILE* get_file();
+    FileIO *get_file();
     void close();
     static std::string get_setting_entry_name(Setting_Entry *s_entry);
     Setting_Entry* get_setting_entry(Entry *entry);
@@ -52,7 +53,7 @@ public:
     Avatar_Award_Entry* get_avatar_award_entry(Entry *entry);
     void writeEntry(Entry *entry, Achievement_Entry *chiev);
     void writeEntry(Avatar_Award_Entry *e);
-    void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id);
+    void injectAchievementEntry(Achievement_Entry *entry);
 
     //NOT DONE!
     void deleteEntry(Entry *entry);
@@ -62,14 +63,12 @@ public:
 private:
     Header h[1];
     FreeMemoryTable table;
-    FILE *opened_file;
+    FileIO *opened_file;
     vector<Entry> private_entries;
     int get_offset(unsigned int offset_specifier, Header *h);
     int getFakeOffset(unsigned int realAddress);
-    int wide_string_length(long pos);
     bool reverse;
-    void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long identifier);
-    void swapAchievementEndianness(Achievement_Entry *entry);
+    void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen);
 };
 
 bool compareFunction(Entry e1, Entry e2);
