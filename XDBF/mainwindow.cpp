@@ -3,6 +3,7 @@
 #include <time.h>
 #include "titleentrydialog.h"
 #include "avatarawarddialog.h"
+#include "achievementinjectordialog.h"
 
 Q_DECLARE_METATYPE(Entry*)
 
@@ -300,7 +301,10 @@ void MainWindow::showDatetimeMessageBox(FILETIME time, QString message_header, Q
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    Achievement_Entry entry = {0};
+    AchievementInjectorDialog dialog(this);
+    dialog.exec();
+
+   /* Achievement_Entry entry = {0};
     entry.size = 0x1C;
     entry.id = 1337;
     entry.imageID = 1337;
@@ -309,5 +313,5 @@ void MainWindow::on_pushButton_2_clicked()
     entry.lockedDescription = L"What do you think?";
     entry.unlockedDescription = L"Hm! Looks like a good effort, but I think you could improve.";
 
-    xdbf->injectAchievementEntry(&entry, 1337);
+    xdbf->injectAchievementEntry(&entry); */
 }

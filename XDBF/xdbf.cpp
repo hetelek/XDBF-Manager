@@ -529,10 +529,10 @@ void XDBF::writeEntry(Avatar_Award_Entry *entry)
     fwrite(&temp.size, 0x2C, 1, opened_file);
 }
 
-void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long identifier)
+void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen)
 {
     h->entry_count++;
-    Entry newEntry = { type, identifier, 0, dataLen };
+    Entry newEntry = { type, 0, 0, dataLen };
 
     //need to update sync list stuffs
 
@@ -573,11 +573,26 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     }
 }
 
-void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
+void XDBF::injectAchievementEntry(Achievement_Entry *entry)
 {
     int nameLen = (wcslen(entry->name) + 1) * 2;
     int lockedDescLen = (wcslen(entry->lockedDescription) + 1) * 2;
     int unlockedDescLen = (wcslen(entry->unlockedDescription) + 1) * 2;
+
+    if (entry->id == 0)
+    {
+        int maxId = private_entries[0].identifier, maxImageID = private_entries[0].identifier;
+        for (int i = 0; i < private_entries.size(); i++)
+        {
+            if (maxId < private_entries[i].identifier && private_entries[i].type == ET_ACHIEVEMENT)
+                maxId = private_entries[i].identifier;
+            else if (maxImageID < private_entries[i].identifier && private_entries[i].type == ET_IMAGE)
+                maxImageID = private_entries[i].identifier;
+        }
+        entry->id = maxId;
+    }
+
+    entry->size = 0x1C;
 
     char *data = new char[0x1C + nameLen + lockedDescLen + unlockedDescLen];
     wchar_t *nameCpy = new wchar_t[wcslen(entry->name)];
@@ -600,7 +615,7 @@ void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long i
     memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
     memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
 
-    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
+    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen);
 }
 
 void XDBF::swapAchievementEndianness(Achievement_Entry *entry)

@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     binarydialog.cpp \
     titleentrydialog.cpp \
     synclistdialog.cpp \
-    avatarawarddialog.cpp
+    avatarawarddialog.cpp \
+    achievementinjectordialog.cpp
 
 HEADERS  += mainwindow.h \
     xdbf.h \
@@ -35,7 +36,8 @@ HEADERS  += mainwindow.h \
     binarydialog.h \
     titleentrydialog.h \
     synclistdialog.h \
-    avatarawarddialog.h
+    avatarawarddialog.h \
+    achievementinjectordialog.h
 
 FORMS    += mainwindow.ui \
     imagedialog.ui \
@@ -43,7 +45,8 @@ FORMS    += mainwindow.ui \
     binarydialog.ui \
     titleentrydialog.ui \
     synclistdialog.ui \
-    avatarawarddialog.ui
+    avatarawarddialog.ui \
+    achievementinjectordialog.ui
 
 RESOURCES += \
     images.qrc

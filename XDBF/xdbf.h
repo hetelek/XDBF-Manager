@@ -52,7 +52,7 @@ public:
     Avatar_Award_Entry* get_avatar_award_entry(Entry *entry);
     void writeEntry(Entry *entry, Achievement_Entry *chiev);
     void writeEntry(Avatar_Award_Entry *e);
-    void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id);
+    void injectAchievementEntry(Achievement_Entry *entry);
 
     static std::string FILETIME_to_string(FILETIME *pft);
 
@@ -64,7 +64,7 @@ private:
     int getFakeOffset(unsigned int realAddress);
     int wide_string_length(long pos);
     bool reverse;
-    void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long identifier);
+    void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen);
     void swapAchievementEndianness(Achievement_Entry *entry);
 };
 
