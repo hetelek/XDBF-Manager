@@ -27,7 +27,7 @@ AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, 
         ui->typeLbl->setText("<b>Type: </b>Other");
 
     ui->lockedDescLbl->setText("<b>Locked Description: </b>" + QString::fromWCharArray(chiev->lockedDescription));
-    ui->unlockedDescLbl->setText("<b>Unlocked Description: </b>" + QString::fromWCharArray(chiev->lockedDescription));
+    ui->unlockedDescLbl->setText("<b>Unlocked Description: </b>" + QString::fromWCharArray(chiev->unlockedDescription));
 
     QDateTime unlockedTime = QDateTime::fromTime_t(FILETIME_to_time_t(&chiev->unlockedTime));
     ui->unlockedTimeDte->setDateTime(unlockedTime);

@@ -301,7 +301,7 @@ void MainWindow::showDatetimeMessageBox(FILETIME time, QString message_header, Q
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    AchievementInjectorDialog dialog(this);
+    AchievementInjectorDialog dialog(this, xdbf);
     dialog.exec();
 
    /* Achievement_Entry entry = {0};

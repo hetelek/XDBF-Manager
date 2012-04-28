@@ -529,10 +529,10 @@ void XDBF::writeEntry(Avatar_Award_Entry *entry)
     fwrite(&temp.size, 0x2C, 1, opened_file);
 }
 
-void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen)
+void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id)
 {
     h->entry_count++;
-    Entry newEntry = { type, 0, 0, dataLen };
+    Entry newEntry = { type, id, 0, dataLen };
 
     //need to update sync list stuffs
 
@@ -573,24 +573,16 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     }
 }
 
-void XDBF::injectAchievementEntry(Achievement_Entry *entry)
+void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
 {
     int nameLen = (wcslen(entry->name) + 1) * 2;
     int lockedDescLen = (wcslen(entry->lockedDescription) + 1) * 2;
     int unlockedDescLen = (wcslen(entry->unlockedDescription) + 1) * 2;
 
-    if (entry->id == 0)
-    {
-        int maxId = private_entries[0].identifier, maxImageID = private_entries[0].identifier;
-        for (int i = 0; i < private_entries.size(); i++)
-        {
-            if (maxId < private_entries[i].identifier && private_entries[i].type == ET_ACHIEVEMENT)
-                maxId = private_entries[i].identifier;
-            else if (maxImageID < private_entries[i].identifier && private_entries[i].type == ET_IMAGE)
-                maxImageID = private_entries[i].identifier;
-        }
-        entry->id = maxId;
-    }
+    if (id == 0)
+        entry->id = id = getNextId(ET_ACHIEVEMENT);
+    if (entry->imageID == 0)
+        entry->imageID = getNextId(ET_IMAGE);
 
     entry->size = 0x1C;
 
@@ -615,7 +607,12 @@ void XDBF::injectAchievementEntry(Achievement_Entry *entry)
     memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
     memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
 
-    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen);
+    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
+}
+
+void XDBF::injectImageEntry(char *imageData, unsigned int len, unsigned long long id)
+{
+    injectEntry_private(ET_IMAGE, imageData, len, (id == 0) ? getNextId(ET_IMAGE) : id);
 }
 
 void XDBF::swapAchievementEndianness(Achievement_Entry *entry)
@@ -628,10 +625,24 @@ void XDBF::swapAchievementEndianness(Achievement_Entry *entry)
     SwapEndian((unsigned long long*)&entry->unlockedTime);
 }
 
+unsigned long long XDBF::getNextId(unsigned short type)
+{
+    unsigned long long maxId = private_entries[0].identifier;
+    for (int i = 1; i < private_entries.size(); i++)
+    {
+        if ((maxId < private_entries[i].identifier) && (private_entries[i].type == type) && (private_entries[i].identifier != SYNC_LIST && private_entries[i].identifier != SYNC_DATA && private_entries[i].identifier != TITLE_INFORMATION))
+            maxId = private_entries[i].identifier;
+    }
+    return maxId + 1;
+}
+
 //for sorting entries
 bool compareFunction(Entry e1, Entry e2)
 {
-    return (e1.type < e2.type);
+    if (e1.type != e2.type)
+        return (e1.type < e2.type);
+    else
+        return (e1.identifier < e2.identifier);
 }
 
 
