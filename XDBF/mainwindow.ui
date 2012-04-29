@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>467</width>
+    <width>473</width>
     <height>408</height>
    </rect>
   </property>
@@ -67,7 +67,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>467</width>
+     <width>473</width>
      <height>21</height>
     </rect>
    </property>
@@ -81,6 +81,10 @@
    <addaction name="menuFile"/>
   </widget>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>

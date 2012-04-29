@@ -2,5 +2,10 @@
     <qresource prefix="/">
         <file>images/HiddenAchievement.png</file>
         <file>images/IconManager.png</file>
+        <file>images/cancel.png</file>
+        <file>images/save.png</file>
+        <file>images/add.png</file>
+        <file>images/continue.png</file>
+        <file>images/open.png</file>
     </qresource>
 </RCC>

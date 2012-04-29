@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>176</width>
+    <width>180</width>
     <height>145</height>
    </rect>
   </property>
@@ -47,12 +47,12 @@
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>9</x>
      <y>111</y>
-     <width>158</width>
+     <width>168</width>
      <height>25</height>
     </rect>
    </property>
@@ -68,6 +68,10 @@
       <property name="text">
        <string>Close</string>
       </property>
+      <property name="icon">
+       <iconset resource="images.qrc">
+        <normaloff>:/images/cancel.png</normaloff>:/images/cancel.png</iconset>
+      </property>
      </widget>
     </item>
     <item>
@@ -81,11 +85,15 @@
       <property name="text">
        <string>Save Image</string>
       </property>
+      <property name="icon">
+       <iconset resource="images.qrc">
+        <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+      </property>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -133,6 +141,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
  <connections/>
 </ui>

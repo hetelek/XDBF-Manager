@@ -16,12 +16,6 @@
     <height>231</height>
    </size>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>419</width>
-    <height>231</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>Avatar Award Entry</string>
   </property>
@@ -266,6 +260,10 @@ p, li { white-space: pre-wrap; }
        <property name="text">
         <string>Cancel</string>
        </property>
+       <property name="icon">
+        <iconset resource="images.qrc">
+         <normaloff>:/images/cancel.png</normaloff>:/images/cancel.png</iconset>
+       </property>
       </widget>
      </item>
      <item>
@@ -279,12 +277,18 @@ p, li { white-space: pre-wrap; }
        <property name="text">
         <string>Save</string>
        </property>
+       <property name="icon">
+        <iconset resource="images.qrc">
+         <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+       </property>
       </widget>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
  <connections/>
 </ui>

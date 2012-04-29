@@ -73,12 +73,20 @@
          <property name="text">
           <string>Cancel</string>
          </property>
+         <property name="icon">
+          <iconset resource="images.qrc">
+           <normaloff>:/images/cancel.png</normaloff>:/images/cancel.png</iconset>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton">
          <property name="text">
           <string>Continue</string>
+         </property>
+         <property name="icon">
+          <iconset resource="images.qrc">
+           <normaloff>:/images/continue.png</normaloff>:/images/continue.png</iconset>
          </property>
         </widget>
        </item>
@@ -88,6 +96,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
  <connections/>
 </ui>

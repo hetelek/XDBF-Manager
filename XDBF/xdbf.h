@@ -60,6 +60,7 @@ public:
     void injectTitleEntry(Title_Entry *entry, unsigned long long id = 0);
     unsigned long long getNextId(unsigned short type);
     void removeEntry(Entry *entry);
+    void removeSyncEntry(Sync_Entry *entr, Sync_List *list);
 
     static std::string FILETIME_to_string(FILETIME *pft);
 
@@ -73,6 +74,7 @@ private:
     bool reverse;
     void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
     void swapAchievementEndianness(Achievement_Entry *entry);
+    void swapTitleEndianness(Title_Entry *entry);
     void writeEntryTable();
     void writeFreeMemoryTable();
 };

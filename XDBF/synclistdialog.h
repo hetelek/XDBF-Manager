@@ -13,12 +13,12 @@ class SyncListDialog;
 class SyncListDialog : public QDialog
 {
     Q_OBJECT
-    
+
 public:
     explicit SyncListDialog(QWidget *parent = 0, Sync_List *_list = NULL, XDBF *_xdbf = NULL);
     Sync_List *list;
     ~SyncListDialog();
-    
+
 private slots:
     void on_pushButton_clicked();
 
@@ -27,6 +27,8 @@ private slots:
     void on_pushButton_3_clicked();
 
     void on_pushButton_4_clicked();
+
+    void on_pushButton_5_clicked();
 
 private:
     Ui::SyncListDialog *ui;

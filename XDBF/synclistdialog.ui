@@ -220,7 +220,7 @@ p, li { white-space: pre-wrap; }
      <x>200</x>
      <y>260</y>
      <width>158</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -229,6 +229,10 @@ p, li { white-space: pre-wrap; }
       <property name="text">
        <string>Cancel</string>
       </property>
+      <property name="icon">
+       <iconset resource="images.qrc">
+        <normaloff>:/images/cancel.png</normaloff>:/images/cancel.png</iconset>
+      </property>
      </widget>
     </item>
     <item>
@@ -236,11 +240,17 @@ p, li { white-space: pre-wrap; }
       <property name="text">
        <string>Save</string>
       </property>
+      <property name="icon">
+       <iconset resource="images.qrc">
+        <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+      </property>
      </widget>
     </item>
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
  <connections/>
 </ui>

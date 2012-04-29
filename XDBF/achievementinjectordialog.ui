@@ -62,6 +62,10 @@
    <property name="text">
     <string>Add New Achievement</string>
    </property>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
+   </property>
   </widget>
   <widget class="QLabel" name="chievImg">
    <property name="geometry">
@@ -106,7 +110,7 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -180,7 +184,7 @@ p, li { white-space: pre-wrap; }
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>220</x>
@@ -254,7 +258,7 @@ p, li { white-space: pre-wrap; }
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>220</x>
@@ -317,12 +321,16 @@ p, li { white-space: pre-wrap; }
        <widget class="QPushButton" name="openImageBtn">
         <property name="maximumSize">
          <size>
-          <width>40</width>
+          <width>60</width>
           <height>20</height>
          </size>
         </property>
         <property name="text">
-         <string>...</string>
+         <string>Open</string>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
         </property>
        </widget>
       </item>
@@ -330,7 +338,7 @@ p, li { white-space: pre-wrap; }
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>220</x>
@@ -373,6 +381,8 @@ p, li { white-space: pre-wrap; }
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
  <connections/>
 </ui>

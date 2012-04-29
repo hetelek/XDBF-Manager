@@ -27,6 +27,8 @@ AvatarAwardDialog::AvatarAwardDialog(QWidget *parent, Avatar_Award_Entry *entry,
     QDateTime unlockedTime = QDateTime::fromTime_t(FILETIME_to_time_t(&award->unlockTime));
     ui->unlockedTimeDte->setDateTime(unlockedTime);
 
+    //setFixedSize(new QSize(width(), height() + 5));
+
     QString url = "http://avatar.xboxlive.com/global/t." + QString::number(award->titleID, 16) + "/avataritem/" + QString::fromStdString(guid(award)) + "/128";
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
