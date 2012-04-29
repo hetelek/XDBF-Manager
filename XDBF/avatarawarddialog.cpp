@@ -6,11 +6,11 @@ AvatarAwardDialog::AvatarAwardDialog(QWidget *parent, Avatar_Award_Entry *entry,
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 
-    ui->nameLbl->setText("<b>Name: </b>" + QString::fromWCharArray(award->name));
+    ui->nameLbl->setText("<b>Name: </b>" + QString::fromWCharArray(award->name->c_str()));
     ui->clothingTypeLbl->setText("<b>Clothing Type: </b>" + QString::fromStdString(getClothingType(award)));
     ui->titleIdLbl->setText("<b>Title ID: </b>" + QString::number(award->titleID, 16).toUpper());
-    ui->lockedDescLbl->setText("<b>Locked Description:</b> " + QString::fromWCharArray(award->lockedDescription));
-    ui->unlockedDescLbl->setText("<b>Unlocked Description:</b> " + QString::fromWCharArray(award->unlockedDescription));
+    ui->lockedDescLbl->setText("<b>Locked Description:</b> " + QString::fromWCharArray(award->lockedDescription->c_str()));
+    ui->unlockedDescLbl->setText("<b>Unlocked Description:</b> " + QString::fromWCharArray(award->unlockedDescription->c_str()));
 
     if (GENDER_FROM_FLAGS(award->flags64) == male)
         ui->genderLbl->setText("<b>Gender: </b>Male");
@@ -55,7 +55,7 @@ void AvatarAwardDialog::on_saveBtn_clicked()
 {
     award->flags32 &= 0xFFFCFFFF;
     int index = ui->stateCbx->currentIndex();
-    award->flags32 |= (ui->stateCbx->currentIndex() == 0) ? 0 : ((ui->stateCbx->currentIndex() + 1) << 16);
+    award->flags32 |= (index == 0) ? 0 : ((index + 1) << 16);
 
     award->unlockTime = time_t_to_FILETIME(ui->unlockedTimeDte->dateTime().toTime_t());
 

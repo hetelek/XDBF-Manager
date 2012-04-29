@@ -30,6 +30,8 @@ using std::vector;
 #define SET_DATETIME    ((unsigned char)7)
 #define SET_NULL        ((unsigned char)0xFF)
 
+#define WSTRING_BYTES(wstringSize) ((wstringSize + 1) * 2)
+
 class XDBF
 {
 public:
@@ -53,7 +55,9 @@ public:
     Avatar_Award_Entry* get_avatar_award_entry(Entry *entry);
     void writeEntry(Entry *entry, Achievement_Entry *chiev);
     void writeEntry(Avatar_Award_Entry *e);
-    void injectAchievementEntry(Achievement_Entry *entry);
+    void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id = 0);
+    void injectImageEntry(char *imageData, unsigned int len, unsigned long long id = 0);
+    unsigned long long getNextId(unsigned short type);
 
     //NOT DONE!
     void deleteEntry(Entry *entry);
@@ -68,7 +72,8 @@ private:
     int get_offset(unsigned int offset_specifier, Header *h);
     int getFakeOffset(unsigned int realAddress);
     bool reverse;
-    void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen);
+    void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
+    void swapAchievementEndianness(Achievement_Entry *entry);
 };
 
 bool compareFunction(Entry e1, Entry e2);

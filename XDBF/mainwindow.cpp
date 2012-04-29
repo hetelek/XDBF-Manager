@@ -93,6 +93,8 @@ void MainWindow::on_actionOpen_triggered()
     {
         QMessageBox::warning(this, "Error", exception, QMessageBox::Ok);
     }
+
+    return;
 }
 
 void MainWindow::clear_items()
@@ -190,7 +192,7 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
                 showDatetimeMessageBox(se->time_stamp, message_header, title);
                 break;
             case SET_UNICODE:
-                showStringMessageBox(se->unicode_string.str, message_header, title);
+                showStringMessageBox(se->unicode_string.str->c_str(), message_header, title);
                 break;
             case SET_BINARY:
                 BinaryDialog bd(this, se);
@@ -264,7 +266,7 @@ void MainWindow::showFloatMessageBox(double num, QString message_header, QString
     QMessageBox::about(this, title, message_header + standard + "<br />" + scientificNotation + "</html>");
 }
 
-void MainWindow::showStringMessageBox(wchar_t *wStr, QString message_header, QString title)
+void MainWindow::showStringMessageBox(const wchar_t *wStr, QString message_header, QString title)
 {
     int strLen = QString::fromWCharArray(wStr).length();
     QString uni_str = "<b>Unicode String:</b> " + ((strLen == 0) ? "<i>Null</i>" : QString::fromWCharArray(wStr));
@@ -281,7 +283,7 @@ void MainWindow::showDatetimeMessageBox(FILETIME time, QString message_header, Q
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    AchievementInjectorDialog dialog(this);
+    AchievementInjectorDialog dialog(this, xdbf);
     dialog.exec();
 
    /* Achievement_Entry entry = {0};

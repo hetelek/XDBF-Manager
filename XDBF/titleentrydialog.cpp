@@ -6,7 +6,7 @@ TitleEntryDialog::TitleEntryDialog(QWidget *parent, Title_Entry *te) : QDialog(p
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 
-    ui->nameLbl->setText("<b>Name: </b>" + QString::fromWCharArray(te->gameName));
+    ui->nameLbl->setText("<b>Name: </b>" + QString::fromWCharArray(te->gameName->c_str()));
     ui->titleIDLbl->setText("<b>Title ID: </b>" + QString::number(te->titleID, 16).toUpper());
     ui->gamerscoreLbl->setText("<b>Gamerscore: </b>" + QString::number(te->gamerscoreUnlocked) + " unlocked out of " + QString::number(te->totalGamerscore));
     ui->achievementsLbl->setText("<b>Achievements: </b>" + QString::number(te->achievementCount) + " unlocked out of " + QString::number(te->achievementCount));

@@ -16,7 +16,7 @@ class AchievementViewer : public QDialog
     Q_OBJECT
     
 public:
-    explicit AchievementViewer(QWidget *parent = 0, Achievement_Entry *chiev = 0, FILE *f = 0, QImage image = QImage(), long address = 0);
+    explicit AchievementViewer(QWidget *parent = 0, Achievement_Entry *chiev = 0, FileIO *f = 0, QImage image = QImage(), long address = 0);
     ~AchievementViewer();
     
 private slots:
@@ -28,7 +28,7 @@ private:
     Ui::AchievementViewer *ui;
     Achievement_Entry *entry;
     long entryAddr;
-    FILE *opened_file;
+    FileIO *opened_file;
     QImage img;
 };
 

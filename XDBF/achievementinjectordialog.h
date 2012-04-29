@@ -20,8 +20,9 @@ public:
     
 private slots:
     void on_comboBox_currentIndexChanged(int index);
-
     void on_pushButton_clicked();
+    void on_imageChbx_stateChanged(int arg1);
+    void on_openImageBtn_clicked();
 
 private:
     Ui::AchievementInjectorDialog *ui;

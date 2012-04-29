@@ -1,6 +1,10 @@
 #include "achievementinjectordialog.h"
 #include "ui_achievementinjectordialog.h"
 #include "xdbf.h"
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QDesktopServices>
+#include <QBuffer>
 
 AchievementInjectorDialog::AchievementInjectorDialog(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::AchievementInjectorDialog), xdbf(xdbf)
 {
@@ -42,27 +46,57 @@ void AchievementInjectorDialog::on_comboBox_currentIndexChanged(int index)
 
 void AchievementInjectorDialog::on_pushButton_clicked()
 {
+    // enusre that the gamerscore textbox only contains numbers
     if (!numbersOnly(ui->gamerscoreTxt->text()))
         return;
 
     Achievement_Entry entry = {0};
 
+    // set the entry's name, i have to make a copy of the text so that the internal function can
+    // can reverse the endian, assuming the user's machine is little endian architecture
     wchar_t *nameTemp = new wchar_t[ui->nameTxt->text().length() + 1];
-    int length = ui->nameTxt->text().toWCharArray(nameTemp);
-    entry.name = new std::wstring(length, nameTemp);
+    entry.name = new std::wstring(nameTemp);
+    ui->nameTxt->text().toWCharArray(nameTemp);
+    nameTemp[ui->nameTxt->text().length()] = 0;
+    entry.name = new std::wstring(nameTemp);
 
+    // set the entry's locked description
     wchar_t *lockedDescTemp = new wchar_t[ui->lockedDescTxt->toPlainText().length() + 1];
+    lockedDescTemp[ui->lockedDescTxt->toPlainText().length()] = 0;
     ui->lockedDescTxt->toPlainText().toWCharArray(lockedDescTemp);
-    entry.lockedDescription = lockedDescTemp;
+    entry.lockedDescription = new std::wstring(lockedDescTemp);
 
+    // set the entry's unlocked description
     wchar_t *unlockedDescTemp = new wchar_t[ui->unlockedDescTxt->toPlainText().length() + 1];
+    unlockedDescTemp[ui->unlockedDescTxt->toPlainText().length()] = 0;
     ui->unlockedDescTxt->toPlainText().toWCharArray(unlockedDescTemp);
-    entry.unlockedDescription = unlockedDescTemp;
+    entry.unlockedDescription = new std::wstring(unlockedDescTemp);
 
+    // set the flags, inlcudes the type and whether or not the achievement is secret
     entry.gamerscore = ui->gamerscoreTxt->text().toUInt();
     entry.flags |= (ui->comboBox->currentIndex() + 1);
     entry.flags != (ui->secretChbx->checkState() == 2) ? 8 : 0;
 
+    unsigned long long imageID = 0;
+
+    // get the achievement image, if there is one
+    if (ui->imageChbx->checkState() == 2)
+    {
+        // convert the image to a byte array for writing
+        QByteArray ba;
+        QBuffer buffer(&ba);
+        buffer.open(QIODevice::WriteOnly);
+        ui->chievImg->pixmap()->save(&buffer, "PNG");
+
+        // set the imageID for the achievement to be the same as the id of the image we inject
+        imageID = xdbf->getNextId(ET_IMAGE);
+        entry.imageID = imageID;
+
+        // inject the new image entry
+        xdbf->injectImageEntry(ba.data(), ba.length(), imageID);
+    }
+
+    // inject the achievement entry
     xdbf->injectAchievementEntry(&entry);
 }
 
@@ -72,4 +106,22 @@ bool AchievementInjectorDialog::numbersOnly(QString s)
         if (!s.at(i).isDigit())
             return false;
     return true;
+}
+
+void AchievementInjectorDialog::on_imageChbx_stateChanged(int arg1)
+{
+    ui->openImageBtn->setEnabled(arg1 >> 1);
+}
+
+void AchievementInjectorDialog::on_openImageBtn_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDesktopServices::storageLocation(QDesktopServices::DesktopLocation), "*.png");
+    QImage image;
+    image.load(fileName);
+    if (image.height() != 64 && image.width() != 64)
+    {
+        QMessageBox::warning(this, "Wrong Dimensions", "The image must be 64x64!");
+        return;
+    }
+    ui->chievImg->setPixmap(QPixmap::fromImage(image));
 }

@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDateTime>
+#include <QDebug>
 #include <sstream>
 #include <iostream>
 
@@ -50,7 +51,7 @@ private:
     AchievementViewer *achViewer;
     void showIntMessageBox(unsigned long long num, QString message_header, QString title);
     void showFloatMessageBox(double num, QString message_header, QString title);
-    void showStringMessageBox(wchar_t *wStr, QString message_header, QString title);
+    void showStringMessageBox(const wchar_t *wStr, QString message_header, QString title);
     void showDatetimeMessageBox(FILETIME time, QString message_header, QString title);
     int ObjectRole;
     void UnixTimeToFileTime(time_t* pt, FILETIME *pft);

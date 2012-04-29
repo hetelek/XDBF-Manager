@@ -3,12 +3,6 @@
 
 XDBF::XDBF(const char* path)
 {
-    int i = 1;
-    if (*(char*)&i == 1)
-        reverse = true;
-    else
-        reverse = false;
-
     opened_file = new FileIO(path);
 
     if(opened_file == NULL)
@@ -19,11 +13,11 @@ XDBF::XDBF(const char* path)
 
     opened_file->setPosition(0);
     h->magic = opened_file->readUInt32();
-    h->entry_count = opened_file->readUInt32();
-    h->entry_table_length = opened_file->readUInt32();
-    h->free_memory_table_entry_count = opened_file->readUInt32();
-    h->free_memory_table_length = opened_file->readUInt32();
     h->version = opened_file->readUInt32();
+    h->entry_table_length = opened_file->readUInt32();
+    h->entry_count = opened_file->readUInt32();
+    h->free_memory_table_length = opened_file->readUInt32();
+    h->free_memory_table_entry_count = opened_file->readUInt32();
 
     if(h->magic != 0x58444246)
     {
@@ -35,24 +29,25 @@ XDBF::XDBF(const char* path)
     {
         temp_entries[i].type = opened_file->readUInt16();
         temp_entries[i].identifier = opened_file->readUInt64();
-        temp_entries[i].length = opened_file->readUInt32();
         temp_entries[i].address = opened_file->readUInt32();
+        temp_entries[i].length = opened_file->readUInt32();
 
         temp_entries[i].address = get_offset(temp_entries[i].address, h);
         private_entries.push_back(temp_entries[i]);
     }
 
     int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
-    opened_file->setPosition(freeMemoryOffset);
 
     table.entryCount = h->free_memory_table_entry_count - 1;
     table.tableLength = h->free_memory_table_length;
 
+    opened_file->setPosition(freeMemoryOffset);
+
     table.entries = new FreeMemoryEntry[table.entryCount];
     for(int i = 0; i < table.entryCount; i++)
     {
-        table.entries[i].length = opened_file->readUInt32();
         table.entries[i].offsetSpecifier = opened_file->readUInt32();
+        table.entries[i].length = opened_file->readUInt32();
     }
 
     delete[] temp_entries;
@@ -218,17 +213,6 @@ Achievement_Entry* XDBF::get_achievement_entry(Entry *entry)
 
     Achievement_Entry *chiev = new Achievement_Entry;
 
-    /*
-    unsigned int size;
-    unsigned int id;
-    unsigned int imageID;
-    unsigned int gamerscore;
-    unsigned int flags;
-    FILETIME unlockedTime;
-    wchar_t *name;
-    wchar_t *lockedDescription;
-    wchar_t *unlockedDescription;
-    */
     opened_file->setPosition(entry->address);
     chiev->size = opened_file->readUInt32();
     chiev->id = opened_file->readUInt32();
@@ -237,18 +221,20 @@ Achievement_Entry* XDBF::get_achievement_entry(Entry *entry)
     chiev->flags = opened_file->readUInt32();
     chiev->unlockedTime.dwHighDateTime = opened_file->readUInt32();
     chiev->unlockedTime.dwLowDateTime = opened_file->readUInt32();
-    chiev->name = &opened_file->readUnicodeString();
-    chiev->lockedDescription = &opened_file->readUnicodeString();
-    chiev->unlockedDescription = &opened_file->readUnicodeString();
 
     opened_file->setPosition(entry->address + 0x1C);
-    chiev->name = &opened_file->readUnicodeString();
+    wstring *str1 = new wstring(opened_file->readUnicodeString());
+    chiev->name = str1;
+    int str1Size = WSTRING_BYTES(str1->size());
 
-    opened_file->setPosition(entry->address + 0x1C + chiev->name->size());
-    chiev->lockedDescription = &opened_file->readUnicodeString();
+    opened_file->setPosition(entry->address + 0x1C + str1Size);
+    wstring *str2 = new wstring(opened_file->readUnicodeString());
+    chiev->lockedDescription = str2;
+    int str2Size = WSTRING_BYTES(str2->size());
 
-    opened_file->setPosition(entry->address + 0x1C + chiev->name->size() + chiev->lockedDescription->size());
-    chiev->unlockedDescription = &opened_file->readUnicodeString();
+    opened_file->setPosition(entry->address + 0x1C + str1Size + str2Size);
+    wstring *str3 = new wstring(opened_file->readUnicodeString());
+    chiev->unlockedDescription = str3;
 
     return chiev;
 }
@@ -465,15 +451,18 @@ Avatar_Award_Entry* XDBF::get_avatar_award_entry(Entry *entry)
     entryAA->unknown[3] = opened_file->readUInt32();
 
     opened_file->setPosition(entry->address + 0x2C);
-    entryAA->name = &opened_file->readUnicodeString();
-    int nameLen = entryAA->name->size();
+    wstring *str1 = new wstring(opened_file->readUnicodeString());
+    entryAA->name = str1;
+    int str1Size = WSTRING_BYTES(str1->size());
 
-    opened_file->setPosition(entry->address + 0x2C + nameLen);
-    entryAA->unlockedDescription = &opened_file->readUnicodeString();
-    int unlockedDescLen = entryAA->unlockedDescription->size();
+    opened_file->setPosition(entry->address + 0x2C + str1Size);
+    wstring *str2 = new wstring(opened_file->readUnicodeString());
+    entryAA->unlockedDescription = str2;
+    int str2Size = WSTRING_BYTES(str2->size());
 
-    opened_file->setPosition(entry->address + 0x2C + nameLen + unlockedDescLen);
-    entryAA->lockedDescription = &opened_file->readUnicodeString();
+    opened_file->setPosition(entry->address + 0x2C + str1Size + str2Size);
+    wstring *str3 = new wstring(opened_file->readUnicodeString());
+    entryAA->lockedDescription = str3;
 
     return entryAA;
 }
@@ -487,10 +476,11 @@ void XDBF::writeEntry(Avatar_Award_Entry *entry)
     opened_file->writeUInt32(entry->titleID);
     opened_file->writeUInt32(entry->imageID);
     opened_file->writeUInt32(entry->flags32);
-    opened_file->writeUInt64(*(UINT64*)&entry->unlockTime);
+    opened_file->writeUInt32(entry->unlockTime.dwHighDateTime);
+    opened_file->writeUInt32(entry->unlockTime.dwLowDateTime);
 }
 
-void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen)
+void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id)
 {
     h->entry_count++;
 
@@ -514,72 +504,51 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
         }
     }
 
-    Entry newEntry = { type, 0, 0, dataLen };
+    Entry newEntry = { type, id, 0, dataLen };
 
-    //need to update sync list stuffs
+    // need to update sync list stuffs
 
-    //update entry count
-    fseek(opened_file, 0xC, SEEK_SET);
-    SwapEndian(&h->entry_count);
-    fwrite(&h->entry_count, 1, 4, opened_file);
-    SwapEndian(&h->entry_count);
+    // update entry count
+    opened_file->setPosition(0xC);
+    opened_file->writeUInt32(h->entry_count);
 
-    //append entry to file
-    fseek(opened_file, 0, SEEK_END);
-    newEntry.address = ftell(opened_file);
-    fwrite(entryData, dataLen, 1, opened_file);
+    // append entry to file
+    opened_file->setPosition(0, FileEnd);
+    newEntry.address = opened_file->getPosition();
+    opened_file->write(entryData, dataLen);
 
-    //add the new entry to the table
+    // add the new entry to the table
     private_entries.push_back(newEntry);
     sort(private_entries.begin(), private_entries.end(), &compareFunction);
 
-    //re-write entry table
+    // re-write entry table
     for (int i = 0; i < h->entry_count; i++)
     {
-        private_entries[i].address = getFakeOffset(private_entries[i].address);
-
-        SwapEndian(&private_entries[i].type);
-        SwapEndian(&private_entries[i].identifier);
-        SwapEndian(&private_entries[i].length);
-        SwapEndian(&private_entries[i].address);
-
-        fseek(opened_file, (i * 0x12) + 0x18, SEEK_SET);
-        fwrite(&private_entries[i], 0x12, 1, opened_file);
-
-        SwapEndian(&private_entries[i].type);
-        SwapEndian(&private_entries[i].identifier);
-        SwapEndian(&private_entries[i].length);
-        SwapEndian(&private_entries[i].address);
-
-        private_entries[i].address = get_offset(private_entries[i].address, h);
+        opened_file->setPosition((i * 0x12) + 0x18);
+        opened_file->writeUInt16(private_entries[i].type);
+        opened_file->writeUInt64(private_entries[i].identifier);
+        opened_file->writeUInt32(private_entries[i].length);
+        opened_file->writeUInt32(getFakeOffset(private_entries[i].address));
     }
 }
 
-void XDBF::injectAchievementEntry(Achievement_Entry *entry)
+void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
 {
-    int nameLen = (wcslen(entry->name) + 1) * 2;
-    int lockedDescLen = (wcslen(entry->lockedDescription) + 1) * 2;
-    int unlockedDescLen = (wcslen(entry->unlockedDescription) + 1) * 2;
+    int nameLen = (entry->name->size() + 1) * 2;
+    int lockedDescLen = (entry->lockedDescription->size() + 1) * 2;
+    int unlockedDescLen = (entry->unlockedDescription->size() + 1) * 2;
 
-    if (entry->id == 0)
-    {
-        int maxId = private_entries[0].identifier, maxImageID = private_entries[0].identifier;
-        for (int i = 0; i < private_entries.size(); i++)
-        {
-            if (maxId < private_entries[i].identifier && private_entries[i].type == ET_ACHIEVEMENT)
-                maxId = private_entries[i].identifier;
-            else if (maxImageID < private_entries[i].identifier && private_entries[i].type == ET_IMAGE)
-                maxImageID = private_entries[i].identifier;
-        }
-        entry->id = maxId;
-    }
+    if (id == 0)
+        entry->id = id = getNextId(ET_ACHIEVEMENT);
+    if (entry->imageID == 0)
+        entry->imageID = getNextId(ET_IMAGE);
 
     entry->size = 0x1C;
 
     char *data = new char[0x1C + nameLen + lockedDescLen + unlockedDescLen];
-    wchar_t *nameCpy = new wchar_t[wcslen(entry->name)];
-    wchar_t *lockedDescCpy = new wchar_t[wcslen(entry->lockedDescription)];
-    wchar_t *unlockedDescCpy = new wchar_t[wcslen(entry->unlockedDescription)];
+    wchar_t *nameCpy = new wchar_t[entry->name->size()];
+    wchar_t *lockedDescCpy = new wchar_t[entry->lockedDescription->size()];
+    wchar_t *unlockedDescCpy = new wchar_t[entry->unlockedDescription->size()];
 
     memcpy(nameCpy, entry->name, nameLen);
     memcpy(lockedDescCpy, entry->lockedDescription, lockedDescLen);
@@ -597,55 +566,86 @@ void XDBF::injectAchievementEntry(Achievement_Entry *entry)
     memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
     memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
 
-    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen);
+    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
+
+    delete[] nameCpy;
+    delete[] lockedDescCpy;
+    delete[] unlockedDescCpy;
 }
 
-void XDBF::deleteEntry(Entry *entry)
+void XDBF::injectImageEntry(char *imageData, unsigned int len, unsigned long long id)
 {
-    //NOT DONE!
-    int indexToDel = -1;
+    injectEntry_private(ET_IMAGE, imageData, len, (id == 0) ? getNextId(ET_IMAGE) : id);
+}
 
-    for(int i = 0; i < private_entries.size(); i++)
-        if(memcmp(&entry, &private_entries[i], sizeof(Entry)) == 0)
-        {
-            indexToDel = i;
-            break;
-        }
+//void XDBF::deleteEntry(Entry *entry)
+//{
+//    //NOT DONE!
+//    int indexToDel = -1;
 
-    if(indexToDel == -1)
+//    for(int i = 0; i < private_entries.size(); i++)
+//        if(memcmp(&entry, &private_entries[i], sizeof(Entry)) == 0)
+//        {
+//            indexToDel = i;
+//            break;
+//        }
+
+//    if(indexToDel == -1)
+//    {
+//        //Entry not found
+//        return;
+//    }
+
+//    FILE *tempFile;
+//    tempFile = tmpfile();
+
+//    if(tempFile == NULL)
+//        throw "Cannot create temporary file.";
+
+//    Header hTemp = *h;
+//    hTemp.entry_count = h->entry_count - 1;
+//    //hTemp.
+
+//    for(int i = 0; i < sizeof(Header) / 4; i++)
+//        SwapEndian(&(((unsigned int*)&hTemp)[i]));
+
+//    fwrite(&hTemp, sizeof(Header), 1, tempFile);
+
+//    //update entry count
+//    fseek(tempFile, 0xC, SEEK_SET);
+//    SwapEndian(&h->entry_count);
+//    fwrite(&h->entry_count, 1, 4, opened_file);
+//    SwapEndian(&h->entry_count);
+
+
+//}
+
+unsigned long long XDBF::getNextId(unsigned short type)
+{
+    unsigned long long maxId = private_entries[0].identifier;
+    for (int i = 1; i < private_entries.size(); i++)
     {
-        //Entry not found
-        return;
+        if ((maxId < private_entries[i].identifier) && (private_entries[i].type == type) && (private_entries[i].identifier != SYNC_LIST && private_entries[i].identifier != SYNC_DATA && private_entries[i].identifier != TITLE_INFORMATION))
+            maxId = private_entries[i].identifier;
     }
-
-    FILE *tempFile;
-    tempFile = tmpfile();
-
-    if(tempFile == NULL)
-        throw "Cannot create temporary file.";
-
-    Header hTemp = *h;
-    hTemp.entry_count = h->entry_count - 1;
-    //hTemp.
-
-    for(int i = 0; i < sizeof(Header) / 4; i++)
-        SwapEndian(&(((unsigned int*)&hTemp)[i]));
-
-    fwrite(&hTemp, sizeof(Header), 1, tempFile);
-
-    //update entry count
-    fseek(tempFile, 0xC, SEEK_SET);
-    SwapEndian(&h->entry_count);
-    fwrite(&h->entry_count, 1, 4, opened_file);
-    SwapEndian(&h->entry_count);
-
-
+    return maxId + 1;
 }
 
 //for sorting entries
 bool compareFunction(Entry e1, Entry e2)
 {
-    return (e1.type < e2.type);
+    if (e1.type != e2.type)
+        return (e1.type < e2.type);
+    else
+        return (e1.identifier < e2.identifier);
 }
 
-
+void XDBF::swapAchievementEndianness(Achievement_Entry *entry)
+{
+    SwapEndian(&entry->size);
+    SwapEndian(&entry->id);
+    SwapEndian(&entry->imageID);
+    SwapEndian(&entry->gamerscore);
+    SwapEndian(&entry->flags);
+    SwapEndian((unsigned long long*)&entry->unlockedTime);
+}

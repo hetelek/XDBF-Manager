@@ -1,7 +1,7 @@
 #include "achievementviewer.h"
 #include "ui_achievementviewer.h"
 
-AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, FILE *f, QImage image, long address)
+AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, FileIO *f, QImage image, long address)
     : QDialog(parent), ui(new Ui::AchievementViewer), img(image), entry(chiev), entryAddr(address)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -10,7 +10,7 @@ AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, 
     opened_file = f;
 
     ui->gamerscoreLbl->setText("<b>Gamerscore: </b>" + QString::number(chiev->gamerscore));
-    ui->nameLbl->setText("<b>Name: </b>" + QString::fromWCharArray(chiev->name));
+    ui->nameLbl->setText("<b>Name: </b>" + QString::fromWCharArray(chiev->name->c_str()));
     if (chiev->flags & Completion)
         ui->typeLbl->setText("<b>Type: </b>Completion");
     else if (chiev->flags & Leveling)
@@ -26,8 +26,11 @@ AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, 
     else if (chiev->flags & Other)
         ui->typeLbl->setText("<b>Type: </b>Other");
 
-    ui->lockedDescLbl->setText("<b>Locked Description: </b>" + QString::fromWCharArray(chiev->lockedDescription));
-    ui->unlockedDescLbl->setText("<b>Unlocked Description: </b>" + QString::fromWCharArray(chiev->lockedDescription));
+    QString lockedQ = QString::fromWCharArray(chiev->lockedDescription->c_str());
+    QString unlockedQ = QString::fromWCharArray(chiev->unlockedDescription->c_str());
+
+    ui->lockedDescLbl->setText("<b>Locked Description: </b>" + lockedQ);
+    ui->unlockedDescLbl->setText("<b>Unlocked Description: </b>" + unlockedQ);
 
     QDateTime unlockedTime = QDateTime::fromTime_t(FILETIME_to_time_t(&chiev->unlockedTime));
     ui->unlockedTimeDte->setDateTime(unlockedTime);
@@ -58,17 +61,14 @@ void AchievementViewer::on_pushButton_2_clicked()
     unsigned int toWrite = entry->flags & 0xFFFCFFFF;
     toWrite |= (ui->stateCmbx->currentIndex() == 0) ? 0 : ((ui->stateCmbx->currentIndex() + 1) << 16);
 
-    SwapEndian(&toWrite);
-
-    fseek(opened_file, entryAddr + 0x10, SEEK_SET);
-    fwrite(&toWrite, 4, 1, opened_file);
+    opened_file->setPosition(entryAddr + 0x10);
+    opened_file->writeUInt32(toWrite);
 
     FILETIME time = time_t_to_FILETIME(ui->unlockedTimeDte->dateTime().toTime_t());
 
-    SwapEndian((unsigned long long*)&time);
-
-    fseek(opened_file, entryAddr + 0x14, SEEK_SET);
-    fwrite(&time, 8, 1, opened_file);
+    opened_file->setPosition(entryAddr + 0x14);
+    opened_file->writeUInt32(time.dwHighDateTime);
+    opened_file->writeUInt32(time.dwLowDateTime);
 
     QMessageBox::information(this, "Success", "Successfully saved changes.");
 }

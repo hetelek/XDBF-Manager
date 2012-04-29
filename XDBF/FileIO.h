@@ -28,6 +28,7 @@ class FileIO
 		bool isOpened();
 		FileIO(string path);
 		void setPosition(long pos, origin = FileStart);
+        int getPosition();
 		void close();
 
 		// reading

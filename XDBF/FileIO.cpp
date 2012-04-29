@@ -18,6 +18,11 @@ void FileIO::close()
 	io->close();
 }
 
+int FileIO::getPosition()
+{
+    return io->tellg();
+}
+
 FileIO::~FileIO(void)
 {
 	if(io->is_open())
@@ -33,7 +38,8 @@ void FileIO::checkEndian()
 
 void FileIO::setPosition(long pos, origin o)
 {
-	io->seekg(pos, o);
+    io->clear();
+    io->seekg(pos, 0);
 }
 
 void FileIO::read(void *destination, size_t len)
@@ -58,7 +64,7 @@ UINT16 FileIO::readUInt16()
 int FileIO::readInt32()
 {
 	int toReturn;
-	read(&toReturn, 4);
+    read(&toReturn, 4);
 	if (isLitttleEndian)
 		SwapEndian((UINT32*)&toReturn);
 	return toReturn;
@@ -66,7 +72,8 @@ int FileIO::readInt32()
 
 UINT32 FileIO::readUInt32()
 {
-	return (UINT32)readInt32();
+    int int32 = readInt32();
+    return *(UINT32*)&int32;
 }
 
 INT64 FileIO::readInt64()
@@ -85,12 +92,14 @@ UINT64 FileIO::readUInt64()
 
 double FileIO::readDouble()
 {
-    return *(double*)&readInt64();
+    UINT64 int64 = readInt64();
+    return *(double*)&int64;
 }
 
 float FileIO::readFloat()
 {
-    return *(float*)&readInt32();
+    int int32 = readInt32();
+    return *(float*)&int32;
 }
 
 string FileIO::readASCIIString(size_t len)
@@ -119,19 +128,19 @@ string FileIO::readASCIIString(size_t len)
 
 wstring FileIO::readUnicodeString(size_t len)
 {
-	wstring result;
-	vector<wchar_t> chars;
+    wstring result;
+    vector<wchar_t> *chars = new vector<wchar_t>;
 	wchar_t character = -1;
 	if (len == 0)
 	{
 		do 
 		{
 			character = (wchar_t)readUInt16();
-			chars.push_back(character);
+            chars->push_back(character);
 		}
 		while (character != 0);
 
-		result = wstring(&chars.at(0));
+        result = wstring(&chars->at(0));
 	}
 	else
 	{
@@ -148,7 +157,7 @@ wstring FileIO::readUnicodeString(size_t len)
 		SwapEndianUnicode(temp, len);
 		result = wstring(temp);
 	}
-	return result;
+    return result;
 }
 
 // writing
