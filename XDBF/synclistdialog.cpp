@@ -89,11 +89,3 @@ void SyncListDialog::on_pushButton_4_clicked()
 {
     close();
 }
-
-void SyncListDialog::on_pushButton_5_clicked()
-{
-    QTableWidgetItem *item = ui->tableWidget_queueList->selectedItems()[0];
-    Sync_Entry *e = item->data(ObjectRole).value<Sync_Entry*>();
-
-    xdbf->removeSyncEntry(e, list);
-}

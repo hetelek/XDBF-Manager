@@ -40,14 +40,14 @@ class FileIO
 
         // writing
         void write(void *destination, size_t len);
-        void writeInt16(short num, size_t len = sizeof(short));
-        void writeUInt16(UINT16 num, size_t len = sizeof(UINT16));
-        void writeInt32(int num, size_t len = sizeof(int));
-        void writeUInt32(UINT32 num, size_t len = sizeof(UINT32));
-        void writeInt64(INT64 num, size_t len = sizeof(INT64));
-        void writeUInt64(UINT64 num, size_t len = sizeof(UINT64));
-        void writeASCIIString(string str);
-        void writeUnicodeString(wstring wstr);
+        void write(short num, size_t len = sizeof(short));
+        void write(UINT16 num, size_t len = sizeof(UINT16));
+        void write(int num, size_t len = sizeof(int));
+        void write(UINT32 num, size_t len = sizeof(UINT32));
+        void write(INT64 num, size_t len = sizeof(INT64));
+        void write(UINT64 num, size_t len = sizeof(UINT64));
+        void write(string str);
+        void write(wstring wstr);
 
         // endian swapping
         static void SwapEndian(void *arr, int elemSize, int len);

@@ -62,13 +62,13 @@ void AchievementViewer::on_pushButton_2_clicked()
     toWrite |= (ui->stateCmbx->currentIndex() == 0) ? 0 : ((ui->stateCmbx->currentIndex() + 1) << 16);
 
     opened_file->setPosition(entryAddr + 0x10);
-    opened_file->writeUInt32(toWrite);
+    opened_file->write(toWrite);
 
     FILETIME time = time_t_to_FILETIME(ui->unlockedTimeDte->dateTime().toTime_t());
 
     opened_file->setPosition(entryAddr + 0x14);
-    opened_file->writeUInt32(time.dwHighDateTime);
-    opened_file->writeUInt32(time.dwLowDateTime);
+    opened_file->write((unsigned int)time.dwHighDateTime);
+    opened_file->write((unsigned int)time.dwLowDateTime);
 
     QMessageBox::information(this, "Success", "Successfully saved changes.");
 }
