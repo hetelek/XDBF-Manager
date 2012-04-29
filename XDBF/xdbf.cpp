@@ -254,12 +254,8 @@ Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
     list.sync_data = get_sync_data(et_type, identifier * 2);
     list.list_entry = syncListTarget;
     list.entry_count = syncsInList;
-<<<<<<< HEAD
-
     list.entries = new vector<Sync_Entry>();
-=======
     list.entries = new vector<Sync_Entry>(syncsInList);
->>>>>>> origin/master
 
     // read all the entries in the sync list
     opened_file->setPosition(syncListTarget->address);
