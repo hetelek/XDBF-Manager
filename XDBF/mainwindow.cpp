@@ -285,15 +285,17 @@ void MainWindow::on_pushButton_2_clicked()
 {
     AchievementInjectorDialog dialog(this, xdbf);
     dialog.exec();
+}
 
-   /* Achievement_Entry entry = {0};
-    entry.size = 0x1C;
-    entry.id = 1337;
-    entry.imageID = 1337;
-    entry.gamerscore = 1337;
-    entry.name = L"Fleck's Achievement";
-    entry.lockedDescription = L"What do you think?";
-    entry.unlockedDescription = L"Hm! Looks like a good effort, but I think you could improve.";
+void MainWindow::on_pushButton_3_clicked()
+{
+    if(ui->tableWidget->selectedItems().count() < 1)
+        return;
 
-    xdbf->injectAchievementEntry(&entry); */
+    for(int i = 0; i < ui->tableWidget->selectedItems().count(); i++)
+    {
+        QTableWidgetItem* item = ui->tableWidget->selectedItems()[i];
+        Entry *e = item->data(ObjectRole).value<Entry*>();
+        xdbf->removeEntry(e);
+    }
 }

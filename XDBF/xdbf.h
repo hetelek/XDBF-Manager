@@ -58,6 +58,7 @@ public:
     void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id = 0);
     void injectImageEntry(char *imageData, unsigned int len, unsigned long long id = 0);
     unsigned long long getNextId(unsigned short type);
+    void removeEntry(Entry *entry);
 
     //NOT DONE!
     void deleteEntry(Entry *entry);
@@ -66,7 +67,7 @@ public:
 
 private:
     Header h[1];
-    FreeMemoryTable table;
+    FreeMemoryTable freeMemTable;
     FileIO *opened_file;
     vector<Entry> private_entries;
     int get_offset(unsigned int offset_specifier, Header *h);
@@ -74,6 +75,8 @@ private:
     bool reverse;
     void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
     void swapAchievementEndianness(Achievement_Entry *entry);
+    void writeEntryTable();
+    void writeFreeMemoryTable();
 };
 
 bool compareFunction(Entry e1, Entry e2);

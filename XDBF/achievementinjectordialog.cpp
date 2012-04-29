@@ -111,14 +111,22 @@ bool AchievementInjectorDialog::numbersOnly(QString s)
 void AchievementInjectorDialog::on_imageChbx_stateChanged(int arg1)
 {
     ui->openImageBtn->setEnabled(arg1 >> 1);
+    if (arg1 == 0)
+        ui->chievImg->setText("<center style=\"font-size:7pt\">Image<br />(64x64)</center>");
+    else if(image != QImage())
+        ui->chievImg->setPixmap(QPixmap::fromImage(image));
 }
 
 void AchievementInjectorDialog::on_openImageBtn_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDesktopServices::storageLocation(QDesktopServices::DesktopLocation), "*.png");
-    QImage image;
     image.load(fileName);
-    if (image.height() != 64 && image.width() != 64)
+
+    // make sure the user selected a file
+    if (fileName == "")
+        return;
+    // ensure that the image selected is 64x64
+    else if (image.height() != 64 && image.width() != 64)
     {
         QMessageBox::warning(this, "Wrong Dimensions", "The image must be 64x64!");
         return;

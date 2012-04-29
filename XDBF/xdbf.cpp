@@ -38,16 +38,18 @@ XDBF::XDBF(const char* path)
 
     int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
 
-    table.entryCount = h->free_memory_table_entry_count - 1;
-    table.tableLength = h->free_memory_table_length;
+    freeMemTable.entryCount = h->free_memory_table_entry_count - 1;
+    freeMemTable.tableLength = h->free_memory_table_length;
 
     opened_file->setPosition(freeMemoryOffset);
 
-    table.entries = new FreeMemoryEntry[table.entryCount];
-    for(int i = 0; i < table.entryCount; i++)
+    freeMemTable.entries = new vector<FreeMemoryEntry>(freeMemTable.entryCount);
+    for(int i = 0; i < freeMemTable.entryCount; i++)
     {
-        table.entries[i].offsetSpecifier = opened_file->readUInt32();
-        table.entries[i].length = opened_file->readUInt32();
+        FreeMemoryEntry entry;
+        entry.offsetSpecifier = opened_file->readUInt32();
+        entry.length = opened_file->readUInt32();
+        freeMemTable.entries->push_back(entry);
     }
 
     delete[] temp_entries;
@@ -253,18 +255,17 @@ Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
     list.list_entry = syncListTarget;
     list.entry_count = syncsInList;
 
-    Sync_Entry *sync_entries = new Sync_Entry[syncsInList];
+    list.entries = new vector<Sync_Entry>(syncsInList);
 
     opened_file->setPosition(syncListTarget->address);
-    opened_file->read(sync_entries, 0x10 * syncsInList);
+    opened_file->read(&list.entries->at(0), 0x10 * syncsInList);
 
     for(int i = 0; i < syncsInList; i++)
     {
-        SwapEndian(&sync_entries[i].identifier);
-        SwapEndian(&sync_entries[i].sync_id);
+        SwapEndian(&list.entries->at(i).identifier);
+        SwapEndian(&list.entries->at(i).sync_id);
     }
 
-    list.entries = sync_entries;
     return list;
 }
 
@@ -295,17 +296,17 @@ void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus
         int highestSyncIdIndex = 0;
         for(int i = 0; i < list.entry_count; i++)
         {
-            if(list.entries[i].sync_id > highestSyncId)
+            if(list.entries->at(i).sync_id > highestSyncId)
             {
-                highestSyncId = list.entries[i].sync_id;
+                highestSyncId = list.entries->at(i).sync_id;
                 highestSyncIdIndex = i;
             }
 
-            if(memcmp(&entry, &list.entries[i], sizeof(entry)) == 0)
+            if(memcmp(&entry, &list.entries->at(i), sizeof(entry)) == 0)
                 found = true;
             else
             {
-                entries.push_back(list.entries[i]);
+                entries.push_back(list.entries->at(i));
 
                 Sync_Entry *entr = &entries.at(entries.size() - 1);
                 SwapEndian(&entr->identifier);
@@ -327,9 +328,9 @@ void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus
     else if(status == Dequeue)
     {
         for(int i = 0; i < list.entry_count; i++)
-            if(memcmp(&entry, &list.entries[i], sizeof(entry)) == 0)
+            if(memcmp(&entry, &list.entries->at(i), sizeof(entry)) == 0)
             {
-                list.entries[i].sync_id = 0;
+                list.entries->at(0).sync_id = 0;
                 found = true;
             }
 
@@ -349,9 +350,9 @@ void XDBF::write_sync_list(Sync_List *sl)
 
     for(int i = 0; i < sl->entry_count; i++)
     {
-        if(sl->entries[i].sync_id != 0)
+        if(sl->entries->at(i).sync_id != 0)
         {
-            queuedEntries.push_back(sl->entries[i]);
+            queuedEntries.push_back(sl->entries->at(i));
 
             Sync_Entry *entr = &queuedEntries.at(queuedEntries.size() - 1);
             SwapEndian(&entr->identifier);
@@ -359,7 +360,7 @@ void XDBF::write_sync_list(Sync_List *sl)
         }
         else
         {
-            entries.push_back(sl->entries[i]);
+            entries.push_back(sl->entries->at(i));
 
             Sync_Entry *entr = &entries.at(entries.size() - 1);
             SwapEndian(&entr->identifier);
@@ -411,8 +412,8 @@ Sync_Entry* XDBF::get_sync(int et_type, unsigned long long identifier)
     Sync_List syncs = get_sync_list(et_type, identifier);
 
     for (int i = 0; i < syncs.entry_count; i++)
-        if (syncs.entries[i].identifier == identifier)
-                return &syncs.entries[i];
+        if (syncs.entries->at(i).identifier == identifier)
+                return &(syncs.entries->at(i));
 
     return NULL;
 }
@@ -485,20 +486,20 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     h->entry_count++;
 
     int indexWithClosestVal = -1;
-    for(int i = 0; i < table.entryCount; i++)
+    for(int i = 0; i < freeMemTable.entryCount; i++)
     {
-        if(table.entries[i].length == dataLen)
+        if(freeMemTable.entries->at(i).length == dataLen)
         {
             indexWithClosestVal = i;
             break;
         }
-        if(table.entries[i].length > dataLen)
+        if(freeMemTable.entries->at(i).length > dataLen)
         {
             if(indexWithClosestVal == -1)
                 indexWithClosestVal = i;
             else
             {
-                if(table.entries[indexWithClosestVal].length > table.entries[i].length)
+                if(freeMemTable.entries->at(indexWithClosestVal).length > freeMemTable.entries->at(i).length)
                     indexWithClosestVal = i;
             }
         }
@@ -507,6 +508,7 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     Entry newEntry = { type, id, 0, dataLen };
 
     // need to update sync list stuffs
+
 
     // update entry count
     opened_file->setPosition(0xC);
@@ -521,15 +523,7 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     private_entries.push_back(newEntry);
     sort(private_entries.begin(), private_entries.end(), &compareFunction);
 
-    // re-write entry table
-    for (int i = 0; i < h->entry_count; i++)
-    {
-        opened_file->setPosition((i * 0x12) + 0x18);
-        opened_file->writeUInt16(private_entries[i].type);
-        opened_file->writeUInt64(private_entries[i].identifier);
-        opened_file->writeUInt32(private_entries[i].length);
-        opened_file->writeUInt32(getFakeOffset(private_entries[i].address));
-    }
+    writeEntryTable();
 }
 
 void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
@@ -630,6 +624,54 @@ unsigned long long XDBF::getNextId(unsigned short type)
     }
     return maxId + 1;
 }
+
+void XDBF::writeEntryTable()
+{
+    // re-write entry table
+    for (int i = 0; i < h->entry_count; i++)
+    {
+        opened_file->setPosition((i * 0x12) + 0x18);
+        opened_file->writeUInt16(private_entries[i].type);
+        opened_file->writeUInt64(private_entries[i].identifier);
+        opened_file->writeUInt32(private_entries[i].length);
+        opened_file->writeUInt32(getFakeOffset(private_entries[i].address));
+    }
+}
+
+void XDBF::removeEntry(Entry *entry)
+{
+    // update entry count
+    h->entry_count--;
+    opened_file->setPosition(0xC);
+    opened_file->writeUInt32(h->entry_count);
+
+    // remove entry from table
+    for (int i = 0; i < private_entries.size(); i++)
+        if (private_entries.at(i).identifier == entry->identifier && private_entries.at(i).type == entry->type)
+            private_entries.erase(private_entries.begin() + i);
+
+    // re-write the entry table
+    writeEntryTable();
+
+    // mark entry as unused memory
+    FreeMemoryEntry freeMem = { getFakeOffset(entry->address), entry->length };
+    freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), freeMem);
+
+    // re-write the free memory table
+    writeFreeMemoryTable();
+}
+
+void XDBF::writeFreeMemoryTable()
+{
+    int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
+    opened_file->setPosition(freeMemoryOffset);
+    for (int i = 0; i < freeMemTable.entryCount; i++)
+    {
+        opened_file->writeUInt32(freeMemTable.entries->at(i).offsetSpecifier);
+        opened_file->writeUInt32(freeMemTable.entries->at(i).length);
+    }
+}
+
 
 //for sorting entries
 bool compareFunction(Entry e1, Entry e2)

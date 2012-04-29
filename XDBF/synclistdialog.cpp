@@ -11,11 +11,11 @@ SyncListDialog::SyncListDialog(QWidget *parent, Sync_List *_list, XDBF *_xdbf) :
 
     for(int i = 0; i < list->entry_count; i++)
     {
-        QString name = QString::fromStdString(Entry_ID_to_string(list->entries[i].identifier));
-        QTableWidgetItem *lwi = new QTableWidgetItem((name == "") ?  "0x" + QString::number(list->entries[i].identifier, 16).toUpper() : name);
+        QString name = QString::fromStdString(Entry_ID_to_string(list->entries->at(i).identifier));
+        QTableWidgetItem *lwi = new QTableWidgetItem((name == "") ?  "0x" + QString::number(list->entries->at(i).identifier, 16).toUpper() : name);
 
-        lwi->setData(ObjectRole, QVariant::fromValue(&list->entries[i]));
-        if(list->entries[i].sync_id != 0)
+        lwi->setData(ObjectRole, QVariant::fromValue(&list->entries->at(i)));
+        if(list->entries->at(i).sync_id != 0)
         {
             int row = ui->tableWidget_queueList->rowCount();
             ui->tableWidget_queueList->insertRow(row);

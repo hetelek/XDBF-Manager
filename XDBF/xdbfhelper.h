@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <vector>
 
 using std::string;
 using std::wstring;
+using std::vector;
 
 #define SYNC_LIST (unsigned long long)0x100000000
 #define SYNC_DATA (unsigned long long)0x200000000
@@ -167,7 +169,7 @@ struct FreeMemoryEntry
 struct FreeMemoryTable
 {
     unsigned int tableLength, entryCount;
-    FreeMemoryEntry *entries;
+    vector<FreeMemoryEntry> *entries;
 };
 
 struct Entry
@@ -189,7 +191,7 @@ typedef struct
     Sync_Data sync_data;
     Entry *list_entry;
     int entry_count;
-    Sync_Entry *entries;
+    vector<Sync_Entry> *entries;
 } Sync_List;
 
 typedef struct

@@ -28,6 +28,7 @@ private:
     Ui::AchievementInjectorDialog *ui;
     bool numbersOnly(QString s);
     XDBF *xdbf;
+    QImage image;
 };
 
 #endif // ACHIEVEMENTINJECTORDIALOG_H
