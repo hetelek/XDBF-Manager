@@ -132,7 +132,7 @@
       <item>
        <widget class="QLineEdit" name="nameTxt">
         <property name="maxLength">
-         <number>15</number>
+         <number>25</number>
         </property>
        </widget>
       </item>

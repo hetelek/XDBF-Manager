@@ -66,7 +66,8 @@ typedef enum
 {
     ACHIEVMENT_NOT_SYNCED = 1,
     DOWNLOAD_ACHIEVEMENT_IMAGE = 2,
-    DOWNLOAD_AVATAR_AWARD = 16
+    DOWNLOAD_AVATAR_AWARD = 16,
+    AVATAR_AWARD_NOT_SYNCED = 32
 } TitleEntryFlag;
 
 typedef enum
