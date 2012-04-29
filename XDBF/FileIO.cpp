@@ -36,10 +36,10 @@ void FileIO::checkEndian()
     isLitttleEndian = (*(char*)&i == 1);
 }
 
-void FileIO::setPosition(long pos, origin o)
+void FileIO::setPosition(long pos, ios_base::seekdir o)
 {
     io->clear();
-    io->seekg(pos, 0);
+    io->seekg(pos, o);
 }
 
 void FileIO::read(void *destination, size_t len)

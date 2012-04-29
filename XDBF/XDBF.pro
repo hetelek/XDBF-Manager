@@ -11,9 +11,9 @@ TARGET = XDBF
 TEMPLATE = app
 
 #ifdef _WIN32 | _WIN64
-RC_FILE = app.rc #Setting icon for Windows
+    RC_FILE = app.rc
 #elif __APPLE__
-ICON = app.icns
+    ICON = app.icns
 #endif
 
 SOURCES += main.cpp\

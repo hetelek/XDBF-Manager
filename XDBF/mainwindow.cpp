@@ -121,7 +121,7 @@ void MainWindow::on_pushButton_clicked()
         QString path = dir + ui->tableWidget->item(list[i]->row(), 0)->text().remove("0x");
         QByteArray ba = path.toAscii();
         char *path_c = ba.data();
-        fopen_s(&f, path_c, "wb");
+        f = fopen(path_c, "wb");
 
         try
         {

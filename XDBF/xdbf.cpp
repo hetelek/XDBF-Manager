@@ -513,7 +513,7 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     opened_file->writeUInt32(h->entry_count);
 
     // append entry to file
-    opened_file->setPosition(0, FileEnd);
+    opened_file->setPosition(0, ios_base::cur);
     newEntry.address = opened_file->getPosition();
     opened_file->write(entryData, dataLen);
 

@@ -9,25 +9,19 @@ using std::ios;
 using std::string;
 using std::wstring;
 using std::vector;
+using std::ios_base;
 
 typedef unsigned short UINT16;
 typedef unsigned int UINT32;
 typedef unsigned long long UINT64;
 typedef long long INT64;
 
-enum origin
-{
-    FileStart,
-    CurrentPosition,
-    FileEnd
-};
-
 class FileIO
 {
     public:
         bool isOpened();
         FileIO(string path);
-        void setPosition(long pos, origin = FileStart);
+        void setPosition(long pos, ios_base::seekdir o = ios_base::beg);
         int getPosition();
         void close();
 
