@@ -167,49 +167,49 @@ void FileIO::write(void *destination, size_t len)
     io->flush();
 }
 
-void FileIO::writeInt16(short num, size_t len)
+void FileIO::write(short num, size_t len)
 {
     if (isLitttleEndian)
         SwapEndian((UINT16*)&num);
     write(&num, len);
 }
 
-void FileIO::writeUInt16(UINT16 num, size_t len)
+void FileIO::write(UINT16 num, size_t len)
 {
     if (isLitttleEndian)
         SwapEndian(&num);
     write(&num, len);
 }
 
-void FileIO::writeUInt32(UINT32 num, size_t len)
+void FileIO::write(UINT32 num, size_t len)
 {
     if (isLitttleEndian)
         SwapEndian(&num);
     write(&num, len);
 }
 
-void FileIO::writeInt32(int num, size_t len)
+void FileIO::write(int num, size_t len)
 {
     if (isLitttleEndian)
         SwapEndian((UINT32*)&num);
     write(&num, len);
 }
 
-void FileIO::writeInt64(INT64 num, size_t len)
+void FileIO::write(INT64 num, size_t len)
 {
     if (isLitttleEndian)
         SwapEndian((UINT64*)&num);
     write(&num, len);
 }
 
-void FileIO::writeUInt64(UINT64 num, size_t len)
+void FileIO::write(UINT64 num, size_t len)
 {
     if (isLitttleEndian)
         SwapEndian(&num);
     write(&num, len);
 }
 
-void FileIO::writeASCIIString(string str)
+void FileIO::write(string str)
 {
     char *data = new char[str.size()];
     memcpy(data, str.c_str(), str.size());
@@ -218,7 +218,7 @@ void FileIO::writeASCIIString(string str)
     delete[] data;
 }
 
-void FileIO::writeUnicodeString(wstring wstr)
+void FileIO::write(wstring wstr)
 {
     if (isLitttleEndian)
         for (int i = 0; i < wstr.size(); i++)
