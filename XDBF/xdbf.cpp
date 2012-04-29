@@ -242,27 +242,31 @@ Achievement_Entry* XDBF::get_achievement_entry(Entry *entry)
 
 Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
 {
+    // make sure the entry exists
     Entry *syncListTarget = get_entry_by_id(identifier, et_type);
     if(syncListTarget == NULL)
         throw "Unable to locate entry.";
 
     int syncsInList = syncListTarget->length / 0x10;
 
+    // initialize 'list'
     Sync_List list;
     list.sync_data = get_sync_data(et_type, identifier * 2);
-
     list.list_entry = syncListTarget;
     list.entry_count = syncsInList;
+<<<<<<< HEAD
 
     list.entries = new vector<Sync_Entry>();
+=======
+    list.entries = new vector<Sync_Entry>(syncsInList);
+>>>>>>> origin/master
 
+    // read all the entries in the sync list
     opened_file->setPosition(syncListTarget->address);
-    opened_file->read(&list.entries->at(0), 0x10 * syncsInList);
-
     for(int i = 0; i < syncsInList; i++)
     {
-        SwapEndian(&list.entries->at(i).identifier);
-        SwapEndian(&list.entries->at(i).sync_id);
+        list.entries->at(i).identifier = opened_file->readUInt64();
+        list.entries->at(i).sync_id = opened_file->readUInt64();
     }
 
     return list;
@@ -279,11 +283,13 @@ std::string XDBF::FILETIME_to_string(FILETIME *pft)
 
 void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus status, unsigned long long identifier)
 {
+    // check if status is already requested status
     if(entry.sync_id != 0 && status == Enqueue)
-        return; //Already on sync queue.
+        return;
     else if(entry.sync_id == 0 && status == Dequeue)
         return;
 
+    // get the sync list
     Sync_List list = get_sync_list(et_type, identifier);
 
     bool found = false;
@@ -297,89 +303,104 @@ void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus
         {
             if(list.entries->at(i).sync_id > highestSyncId)
             {
+                // update the highest sync id, for sorting later
                 highestSyncId = list.entries->at(i).sync_id;
                 highestSyncIdIndex = i;
             }
 
             if(memcmp(&entry, &list.entries->at(i), sizeof(entry)) == 0)
+            {
+                // the inputted ID was found
                 found = true;
+            }
             else
             {
+                // add the entry to the list (if it's not the requested one)
                 entries.push_back(list.entries->at(i));
-
-                Sync_Entry *entr = &entries.at(entries.size() - 1);
-                SwapEndian(&entr->identifier);
-                SwapEndian(&entr->sync_id);
             }
         }
 
         if(!found)
             throw "Could not find given Sync List Entry.";
 
+        // update the sync ID for the one we are writing
         entry.sync_id = highestSyncId + 1;
-        SwapEndian(&entry.sync_id);
-        SwapEndian(&entry.identifier);
 
+        // insert the entry at the end of the QUEUED list
         entries.insert(entries.begin() + (highestSyncIdIndex - 1), 1, entry);
+
+        // write all the entries
         opened_file->setPosition(list.list_entry->address);
-        opened_file->write(&entries.at(0), 0x10 * list.entry_count);
+        for(int i = 0; i < list.entry_count; i++)
+        {
+            opened_file->writeUInt64(entries.at(i).identifier);
+            opened_file->writeUInt64(entries.at(i).sync_id);
+        }
     }
     else if(status == Dequeue)
     {
         for(int i = 0; i < list.entry_count; i++)
             if(memcmp(&entry, &list.entries->at(i), sizeof(entry)) == 0)
             {
-                list.entries->at(0).sync_id = 0;
+                // make the requested entry's sync ID 0, so it dequeues it
+                list.entries->at(i).sync_id = 0;
                 found = true;
             }
 
         if(!found)
             throw "Could not find given Sync List Entry.";
+
+        // write the new sync list
         write_sync_list(&list);
     }
 }
 
 void XDBF::write_sync_list(Sync_List *sl)
 {
+    // check size
     Entry *entr1 = sl->list_entry;
     if(sl->entry_count * 0x10 != entr1->length)
         throw "Requested sync list(to be written) differs in size from current sync list.";
 
-    vector<Sync_Entry> queuedEntries, entries;
+    vector<Sync_Entry> queuedEntries, nonqueuedEntries;
 
+    // sort entries by queued, and not queued
     for(int i = 0; i < sl->entry_count; i++)
     {
         if(sl->entries->at(i).sync_id != 0)
         {
             queuedEntries.push_back(sl->entries->at(i));
 
-            Sync_Entry *entr = &queuedEntries.at(queuedEntries.size() - 1);
-            SwapEndian(&entr->identifier);
-            SwapEndian(&entr->sync_id);
+            // Sync_Entry *entr = &queuedEntries.at(queuedEntries.size() - 1);
+            // SwapEndian(&entr->identifier);
+            // SwapEndian(&entr->sync_id);
         }
         else
         {
-            entries.push_back(sl->entries->at(i));
+            nonqueuedEntries.push_back(sl->entries->at(i));
 
-            Sync_Entry *entr = &entries.at(entries.size() - 1);
-            SwapEndian(&entr->identifier);
-            SwapEndian(&entr->sync_id);
+            // Sync_Entry *entr = &nonqueuedEntries.at(nonqueuedEntries.size() - 1);
+            // SwapEndian(&entr->identifier);
+            // SwapEndian(&entr->sync_id);
         }
     }
 
-    for(int i = 0; i < entries.size(); i++)
+    // write non-queued entries
+    for(int i = 0; i < nonqueuedEntries.size(); i++)
     {
         opened_file->setPosition(entr1->address + (0x10 * i));
-        opened_file->write(&entries.at(i), 0x10);
+        opened_file->write(&nonqueuedEntries.at(i), 0x10);
     }
 
-    int startingPos = entries.size() * 0x10;
+    // write queued entries
+    int startingPos = nonqueuedEntries.size() * 0x10;
     for(int i = 0; i < queuedEntries.size(); i++)
     {
         opened_file->setPosition(entr1->address + (startingPos + (0x10 * i)));
         opened_file->write(&queuedEntries.at(i), 0x10);
     }
 
+    // update corresponding sync data entry
     unsigned long long next = queuedEntries.size() + 1;
     sl->sync_data.next_sync_id = next;
     opened_file->setPosition(sl->sync_data.data_entry->address);
@@ -388,6 +409,7 @@ void XDBF::write_sync_list(Sync_List *sl)
 
 Sync_Data XDBF::get_sync_data(int et_type, unsigned long long identifier)
 {
+    // make sure there is a corresponding sync data
     Entry *target = get_entry_by_id(identifier, et_type);
     if(target == NULL)
         throw "Sync data could not be found with given entry type.";
@@ -395,13 +417,13 @@ Sync_Data XDBF::get_sync_data(int et_type, unsigned long long identifier)
     Sync_Data data;
     data.data_entry = target;
 
-    unsigned long long *entr_data = (unsigned long long*)extract_entry(target);
-    for(int i = 0; i < 3; i++)
-        SwapEndian(&entr_data[i]);
+    // read the sync data's info
+    opened_file->setPosition(target->address);
 
-    data.next_sync_id = entr_data[0];
-    data.last_sync_id = entr_data[1];
-    data.last_synced_time = *(FILETIME*)&entr_data[2];
+    data.next_sync_id = opened_file->readUInt64();
+    data.last_sync_id = opened_file->readUInt64();
+    data.last_synced_time.dwHighDateTime = opened_file->readUInt32();
+    data.last_synced_time.dwLowDateTime = opened_file->readUInt32();
 
     return data;
 }
@@ -571,48 +593,6 @@ void XDBF::injectImageEntry(char *imageData, unsigned int len, unsigned long lon
     injectEntry_private(ET_IMAGE, imageData, len, (id == 0) ? getNextId(ET_IMAGE) : id);
 }
 
-//void XDBF::deleteEntry(Entry *entry)
-//{
-//    //NOT DONE!
-//    int indexToDel = -1;
-
-//    for(int i = 0; i < private_entries.size(); i++)
-//        if(memcmp(&entry, &private_entries[i], sizeof(Entry)) == 0)
-//        {
-//            indexToDel = i;
-//            break;
-//        }
-
-//    if(indexToDel == -1)
-//    {
-//        //Entry not found
-//        return;
-//    }
-
-//    FILE *tempFile;
-//    tempFile = tmpfile();
-
-//    if(tempFile == NULL)
-//        throw "Cannot create temporary file.";
-
-//    Header hTemp = *h;
-//    hTemp.entry_count = h->entry_count - 1;
-//    //hTemp.
-
-//    for(int i = 0; i < sizeof(Header) / 4; i++)
-//        SwapEndian(&(((unsigned int*)&hTemp)[i]));
-
-//    fwrite(&hTemp, sizeof(Header), 1, tempFile);
-
-//    //update entry count
-//    fseek(tempFile, 0xC, SEEK_SET);
-//    SwapEndian(&h->entry_count);
-//    fwrite(&h->entry_count, 1, 4, opened_file);
-//    SwapEndian(&h->entry_count);
-
-
-//}
-
 unsigned long long XDBF::getNextId(unsigned short type)
 {
     unsigned long long maxId = private_entries[0].identifier;
@@ -684,7 +664,6 @@ void XDBF::writeFreeMemoryTable()
         opened_file->writeUInt32(freeMemTable.entries->at(i).length);
     }
 }
-
 
 //for sorting entries
 bool compareFunction(Entry e1, Entry e2)
