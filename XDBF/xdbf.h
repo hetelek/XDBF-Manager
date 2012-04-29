@@ -59,9 +59,7 @@ public:
     void injectImageEntry(char *imageData, unsigned int len, unsigned long long id = 0);
     unsigned long long getNextId(unsigned short type);
     void removeEntry(Entry *entry);
-
-    //NOT DONE!
-    void deleteEntry(Entry *entry);
+    void removeSyncEntry(Sync_Entry *entr, Sync_List *list);
 
     static std::string FILETIME_to_string(FILETIME *pft);
 

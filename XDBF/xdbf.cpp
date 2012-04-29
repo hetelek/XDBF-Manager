@@ -51,6 +51,8 @@ XDBF::XDBF(const char* path)
         freeMemTable.entries->push_back(entry);
     }
 
+    int a = get_offset(0x722, h);
+
     delete[] temp_entries;
 }
 
@@ -355,8 +357,14 @@ void XDBF::write_sync_list(Sync_List *sl)
 {
     // check size
     Entry *entr1 = sl->list_entry;
-    if(sl->entry_count * 0x10 != entr1->length)
-        throw "Requested sync list(to be written) differs in size from current sync list.";
+
+    int newSize = (sl->entry_count * 0x10);
+    int diff = 0;
+    if(newSize != entr1->length)
+        diff = entr1->length - newSize;
+
+    if(diff < 0)
+        throw "Injecting entries is not supported";
 
     vector<Sync_Entry> queuedEntries, nonqueuedEntries;
 
@@ -366,18 +374,10 @@ void XDBF::write_sync_list(Sync_List *sl)
         if(sl->entries->at(i).sync_id != 0)
         {
             queuedEntries.push_back(sl->entries->at(i));
-
-            // Sync_Entry *entr = &queuedEntries.at(queuedEntries.size() - 1);
-            // SwapEndian(&entr->identifier);
-            // SwapEndian(&entr->sync_id);
         }
         else
         {
             nonqueuedEntries.push_back(sl->entries->at(i));
-
-            // Sync_Entry *entr = &nonqueuedEntries.at(nonqueuedEntries.size() - 1);
-            // SwapEndian(&entr->identifier);
-            // SwapEndian(&entr->sync_id);
         }
     }
 
@@ -385,7 +385,8 @@ void XDBF::write_sync_list(Sync_List *sl)
     for(int i = 0; i < nonqueuedEntries.size(); i++)
     {
         opened_file->setPosition(entr1->address + (0x10 * i));
-        opened_file->write(&nonqueuedEntries.at(i), 0x10);
+        opened_file->writeUInt64(nonqueuedEntries.at(i).identifier);
+        opened_file->writeUInt64(nonqueuedEntries.at(i).sync_id);
     }
 
     // write queued entries
@@ -393,7 +394,8 @@ void XDBF::write_sync_list(Sync_List *sl)
     for(int i = 0; i < queuedEntries.size(); i++)
     {
         opened_file->setPosition(entr1->address + (startingPos + (0x10 * i)));
-        opened_file->write(&queuedEntries.at(i), 0x10);
+        opened_file->writeUInt64(queuedEntries.at(i).identifier);
+        opened_file->writeUInt64(queuedEntries.at(i).sync_id);
     }
 
     // update corresponding sync data entry
@@ -401,6 +403,45 @@ void XDBF::write_sync_list(Sync_List *sl)
     sl->sync_data.next_sync_id = next;
     opened_file->setPosition(sl->sync_data.data_entry->address);
     opened_file->writeUInt64(next);
+
+    if(diff > 0)
+    {
+        // update free memory table length
+        h->free_memory_table_entry_count++;
+        opened_file->setPosition(0x14);
+        opened_file->writeUInt32(h->free_memory_table_entry_count);
+        freeMemTable.entryCount++;
+
+        // mark entry as unused memory
+        FreeMemoryEntry freeMem = { getFakeOffset(sl->list_entry->address + newSize), diff };
+        freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), freeMem);
+        freeMemTable.entryCount++;
+
+        // re-write the free memory table
+        writeFreeMemoryTable();
+
+        // update the entry size
+        sl->list_entry->length = newSize;
+        writeEntryTable();
+    }
+}
+
+void XDBF::removeSyncEntry(Sync_Entry *entr, Sync_List *list)
+{
+    bool found = false;
+    for(int i = 0; i < list->entry_count - 1; i++)
+        if(memcmp(entr, &list->entries->at(i), sizeof(Entry)) == 0)
+        {
+            list->entries->erase(list->entries->begin() + i);
+            list->entry_count--;
+            found = true;
+            break;
+        }
+
+    if(!found)
+        return;
+
+    write_sync_list(list);
 }
 
 Sync_Data XDBF::get_sync_data(int et_type, unsigned long long identifier)
@@ -654,14 +695,14 @@ void XDBF::writeFreeMemoryTable()
 {
     int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
     opened_file->setPosition(freeMemoryOffset);
-    for (int i = 0; i < freeMemTable.entryCount; i++)
+    for (int i = 0; i < freeMemTable.entryCount - 1; i++)
     {
         opened_file->writeUInt32(freeMemTable.entries->at(i).offsetSpecifier);
         opened_file->writeUInt32(freeMemTable.entries->at(i).length);
     }
 }
 
-//for sorting entries
+// for sorting entries
 bool compareFunction(Entry e1, Entry e2)
 {
     if (e1.type != e2.type)
