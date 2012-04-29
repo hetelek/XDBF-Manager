@@ -211,9 +211,6 @@ void FileIO::writeUInt64(UINT64 num, size_t len)
 
 void FileIO::writeASCIIString(string str)
 {
-	if (!isLitttleEndian)
-		std::reverse(str.begin(), str.end());
-	
 	char *data = new char[str.size()];
 	memcpy(data, str.c_str(), str.size());
 	write(data, str.size());
