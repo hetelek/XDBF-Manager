@@ -297,5 +297,7 @@ void MainWindow::on_pushButton_3_clicked()
         QTableWidgetItem* item = ui->tableWidget->selectedItems()[i];
         Entry *e = item->data(ObjectRole).value<Entry*>();
         xdbf->removeEntry(e);
+
+        ui->tableWidget->removeRow(item->row());
     }
 }

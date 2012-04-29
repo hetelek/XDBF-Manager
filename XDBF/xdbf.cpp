@@ -36,14 +36,13 @@ XDBF::XDBF(const char* path)
         private_entries.push_back(temp_entries[i]);
     }
 
-    int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
-
-    freeMemTable.entryCount = h->free_memory_table_entry_count - 1;
+    freeMemTable.entryCount = h->free_memory_table_entry_count;
     freeMemTable.tableLength = h->free_memory_table_length;
 
+    int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
     opened_file->setPosition(freeMemoryOffset);
 
-    freeMemTable.entries = new vector<FreeMemoryEntry>(freeMemTable.entryCount);
+    freeMemTable.entries = new vector<FreeMemoryEntry>();
     for(int i = 0; i < freeMemTable.entryCount; i++)
     {
         FreeMemoryEntry entry;
@@ -255,7 +254,7 @@ Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
     list.list_entry = syncListTarget;
     list.entry_count = syncsInList;
 
-    list.entries = new vector<Sync_Entry>(syncsInList);
+    list.entries = new vector<Sync_Entry>();
 
     opened_file->setPosition(syncListTarget->address);
     opened_file->read(&list.entries->at(0), 0x10 * syncsInList);
@@ -633,13 +632,18 @@ void XDBF::writeEntryTable()
         opened_file->setPosition((i * 0x12) + 0x18);
         opened_file->writeUInt16(private_entries[i].type);
         opened_file->writeUInt64(private_entries[i].identifier);
-        opened_file->writeUInt32(private_entries[i].length);
         opened_file->writeUInt32(getFakeOffset(private_entries[i].address));
+        opened_file->writeUInt32(private_entries[i].length);
     }
 }
 
 void XDBF::removeEntry(Entry *entry)
 {
+    if (entry == NULL)
+        return;
+
+    Entry temp = *entry;
+
     // update entry count
     h->entry_count--;
     opened_file->setPosition(0xC);
@@ -647,14 +651,23 @@ void XDBF::removeEntry(Entry *entry)
 
     // remove entry from table
     for (int i = 0; i < private_entries.size(); i++)
-        if (private_entries.at(i).identifier == entry->identifier && private_entries.at(i).type == entry->type)
+        if (private_entries.at(i).identifier == temp.identifier && private_entries.at(i).type == temp.type)
+        {
             private_entries.erase(private_entries.begin() + i);
+            break;
+        }
 
     // re-write the entry table
     writeEntryTable();
 
+    // update free memory table length
+    h->free_memory_table_entry_count++;
+    opened_file->setPosition(0x14);
+    opened_file->writeUInt32(h->free_memory_table_entry_count);
+    freeMemTable.entryCount++;
+
     // mark entry as unused memory
-    FreeMemoryEntry freeMem = { getFakeOffset(entry->address), entry->length };
+    FreeMemoryEntry freeMem = { getFakeOffset(temp.address), temp.length };
     freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), freeMem);
 
     // re-write the free memory table
