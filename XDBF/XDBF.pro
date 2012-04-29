@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     synclistdialog.cpp \
     avatarawarddialog.cpp \
     achievementinjectordialog.cpp \
-    FileIO.cpp
+    FileIO.cpp \
+    newentrychooser.cpp
 
 HEADERS  += mainwindow.h \
     xdbf.h \
@@ -39,7 +40,8 @@ HEADERS  += mainwindow.h \
     synclistdialog.h \
     avatarawarddialog.h \
     achievementinjectordialog.h \
-    FileIO.h
+    FileIO.h \
+    newentrychooser.h
 
 FORMS    += mainwindow.ui \
     imagedialog.ui \
@@ -48,7 +50,8 @@ FORMS    += mainwindow.ui \
     titleentrydialog.ui \
     synclistdialog.ui \
     avatarawarddialog.ui \
-    achievementinjectordialog.ui
+    achievementinjectordialog.ui \
+    newentrychooser.ui
 
 RESOURCES += \
     images.qrc

@@ -56,12 +56,10 @@ public:
     void writeEntry(Entry *entry, Achievement_Entry *chiev);
     void writeEntry(Avatar_Award_Entry *e);
     void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id = 0);
-    void injectImageEntry(char *imageData, unsigned int len, unsigned long long id = 0);
+    void injectImageEntry(char *imageData, unsigned int len, unsigned long long id);
+    void injectTitleEntry(Title_Entry *entry, unsigned long long id = 0);
     unsigned long long getNextId(unsigned short type);
     void removeEntry(Entry *entry);
-
-    //NOT DONE!
-    void deleteEntry(Entry *entry);
 
     static std::string FILETIME_to_string(FILETIME *pft);
 

@@ -3,7 +3,7 @@
 #include <time.h>
 #include "titleentrydialog.h"
 #include "avatarawarddialog.h"
-#include "achievementinjectordialog.h"
+#include "newentrychooser.h"
 
 Q_DECLARE_METATYPE(Entry*)
 
@@ -283,8 +283,8 @@ void MainWindow::showDatetimeMessageBox(FILETIME time, QString message_header, Q
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    AchievementInjectorDialog dialog(this, xdbf);
-    dialog.exec();
+    NewEntryChooser entryChooser(this, xdbf);
+    entryChooser.exec();
 }
 
 void MainWindow::on_pushButton_3_clicked()
