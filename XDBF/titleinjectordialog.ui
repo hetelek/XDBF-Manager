@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>544</width>
-    <height>285</height>
+    <width>551</width>
+    <height>280</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -111,6 +111,19 @@ p, li { white-space: pre-wrap; }
       </layout>
      </item>
     </layout>
+   </item>
+   <item row="0" column="1">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item row="0" column="2" rowspan="2">
     <layout class="QGridLayout" name="gridLayout">
@@ -369,19 +382,6 @@ p, li { white-space: pre-wrap; }
       <widget class="QListWidget" name="listWidget"/>
      </item>
     </layout>
-   </item>
-   <item row="0" column="1">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

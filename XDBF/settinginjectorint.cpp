@@ -17,11 +17,14 @@ SettingInjectorInt::~SettingInjectorInt()
 
 void SettingInjectorInt::on_pushButton_clicked()
 {
+    // create a new setting entry of type int32, and set the value
+    // to the one provided by the user
     Setting_Entry entry;
     entry.type = SET_INT32;
     entry.i32_data = ui->spinBox->value();
 
-    // write entry
+    // add the entry
+    xdbf->injectSettingEntry(&entry, 0);
 
     QMessageBox::information(this, "Success", "Successfully added Int32 setting entry.");
 
