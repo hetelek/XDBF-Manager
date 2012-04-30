@@ -2,6 +2,7 @@
 #include "ui_newentrychooser.h"
 #include "achievementinjectordialog.h"
 #include "titleinjectordialog.h"
+#include "settinginjectorint.h"
 
 NewEntryChooser::NewEntryChooser(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::NewEntryChooser), xdbf(xdbf)
 {
@@ -26,16 +27,24 @@ void NewEntryChooser::on_pushButton_clicked()
         case 0:
         {
             this->setVisible(false);
-            AchievementInjectorDialog dialog1(this, xdbf);
-            dialog1.exec();
+            AchievementInjectorDialog dialog(this, xdbf);
+            dialog.exec();
             this->close();
             break;
         }
-        case 3:
+        case 2:
         {
             this->setVisible(false);
-            TitleInjectorDialog dialog2(this, xdbf);
-            dialog2.exec();
+            SettingInjectorInt dialog(this, xdbf);
+            dialog.exec();
+            this->close();
+            break;
+        }
+        case 9:
+        {
+            this->setVisible(false);
+            TitleInjectorDialog dialog(this, xdbf);
+            dialog.exec();
             this->close();
             break;
         }
