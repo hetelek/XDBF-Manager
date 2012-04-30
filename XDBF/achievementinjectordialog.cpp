@@ -8,6 +8,7 @@
 
 AchievementInjectorDialog::AchievementInjectorDialog(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::AchievementInjectorDialog), xdbf(xdbf)
 {
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 }
 

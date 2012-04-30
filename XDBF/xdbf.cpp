@@ -64,7 +64,9 @@ Entry* XDBF::get_entry_by_id(long long identifier, int type)
     Entry *entries = get_entries();
     for(unsigned int i = 0; i < get_header()->entry_count; i++)
         if(entries[i].identifier == identifier && entries[i].type == type)
+        {
             return &entries[i];
+        }
 
     return NULL;
 }
@@ -199,10 +201,17 @@ Title_Entry* XDBF::get_title_entry(Entry *entry)
 
     Title_Entry *t_entry = new Title_Entry;
     opened_file->setPosition(entry->address);
-    opened_file->read(t_entry, 40);
+    t_entry->titleID = opened_file->readUInt32();
+    t_entry->achievementCount = opened_file->readInt32();
+    t_entry->achievementUnlockedCount = opened_file->readInt32();
+    t_entry->totalGamerscore = opened_file->readUInt32();
+    t_entry->gamerscoreUnlocked = opened_file->readUInt32();
+    opened_file->read(&t_entry->unknown, 8);
+    t_entry->flags = opened_file->readUInt32();
 
     opened_file->setPosition(entry->address + 0x28);
-    t_entry->gameName = &opened_file->readUnicodeString();
+    wstring *a = new wstring(opened_file->readUnicodeString());
+    t_entry->gameName = a;
 
     return t_entry;
 }
@@ -413,7 +422,6 @@ void XDBF::write_sync_list(Sync_List *sl)
         // mark entry as unused memory
         FreeMemoryEntry freeMem = { getFakeOffset(sl->list_entry->address + newSize), diff };
         freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), freeMem);
-        freeMemTable.entryCount++;
 
         // re-write the free memory table
         writeFreeMemoryTable();
@@ -523,7 +531,83 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
 {
     h->entry_count++;
 
-    int indexWithClosestVal = -1;
+    Entry newEntry = { type, id, 0, dataLen };
+
+    // need to update sync list stuffs
+
+
+    // update entry count
+    opened_file->setPosition(0xC);
+    opened_file->write(h->entry_count);
+
+    // append entry to file
+    opened_file->setPosition(0, ios_base::end);
+    newEntry.address = opened_file->getPosition();
+    opened_file->write(entryData, dataLen);
+
+    // add the new entry to the table
+    private_entries.push_back(newEntry);
+    sort(private_entries.begin(), private_entries.end(), &compareFunction);
+
+    writeEntryTable();
+}
+
+void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
+{
+    int nameLen = WSTRING_BYTES(entry->name->size());
+    int lockedDescLen = WSTRING_BYTES(entry->lockedDescription->size());
+    int unlockedDescLen = WSTRING_BYTES(entry->unlockedDescription->size());
+
+    if (id == 0)
+        entry->id = id = getNextId(ET_ACHIEVEMENT);
+    if (entry->imageID == 0)
+        entry->imageID = getNextId(ET_IMAGE);
+
+    entry->size = 0x1C;
+
+    char *data = new char[0x1C + nameLen + lockedDescLen + unlockedDescLen];
+    wchar_t *nameCpy = new wchar_t[entry->name->size() + 1];
+    wchar_t *lockedDescCpy = new wchar_t[entry->lockedDescription->size() + 1];
+    wchar_t *unlockedDescCpy = new wchar_t[entry->unlockedDescription->size() + 1];
+
+    memcpy(nameCpy, entry->name->c_str(), nameLen);
+    memcpy(lockedDescCpy, entry->lockedDescription->c_str(), lockedDescLen);
+    memcpy(unlockedDescCpy, entry->unlockedDescription->c_str(), unlockedDescLen);
+
+    swapAchievementEndianness(entry);
+    memcpy(data, &entry->size, 0x1C);
+    swapAchievementEndianness(entry);
+
+    SwapEndianUnicode(nameCpy, nameLen);
+    SwapEndianUnicode(lockedDescCpy, lockedDescLen);
+    SwapEndianUnicode(unlockedDescCpy, unlockedDescLen);
+
+    memcpy(&data[0x1C], nameCpy, nameLen);
+    memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
+    memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
+
+    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
+}
+
+void XDBF::injectImageEntry(char *imageData, unsigned int len, unsigned long long id)
+{
+    injectEntry_private(ET_IMAGE, imageData, len, (id == 0) ? getNextId(ET_IMAGE) : id);
+}
+
+unsigned long long XDBF::getNextId(unsigned short type)
+{
+    unsigned long long maxId = private_entries[0].identifier;
+    for (int i = 1; i < private_entries.size(); i++)
+    {
+        if ((maxId < private_entries[i].identifier) && (private_entries[i].type == type) && (private_entries[i].identifier != SYNC_LIST && private_entries[i].identifier != SYNC_DATA && private_entries[i].identifier != TITLE_INFORMATION))
+            maxId = private_entries[i].identifier;
+    }
+    return maxId + 1;
+}
+
+long XDBF::fmalloc(size_t amount)
+{
+    /* int indexWithClosestVal = -1;
     for(int i = 0; i < freeMemTable.entryCount; i++)
     {
         if(freeMemTable.entries->at(i).length == dataLen)
@@ -541,84 +625,9 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
                     indexWithClosestVal = i;
             }
         }
-    }
+    } */
 
-    Entry newEntry = { type, id, 0, dataLen };
-
-    // need to update sync list stuffs
-
-
-    // update entry count
-    opened_file->setPosition(0xC);
-    opened_file->write(h->entry_count);
-
-    // append entry to file
-    opened_file->setPosition(0, ios_base::cur);
-    newEntry.address = opened_file->getPosition();
-    opened_file->write(entryData, dataLen);
-
-    // add the new entry to the table
-    private_entries.push_back(newEntry);
-    sort(private_entries.begin(), private_entries.end(), &compareFunction);
-
-    writeEntryTable();
-}
-
-void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
-{
-    int nameLen = (entry->name->size() + 1) * 2;
-    int lockedDescLen = (entry->lockedDescription->size() + 1) * 2;
-    int unlockedDescLen = (entry->unlockedDescription->size() + 1) * 2;
-
-    if (id == 0)
-        entry->id = id = getNextId(ET_ACHIEVEMENT);
-    if (entry->imageID == 0)
-        entry->imageID = getNextId(ET_IMAGE);
-
-    entry->size = 0x1C;
-
-    char *data = new char[0x1C + nameLen + lockedDescLen + unlockedDescLen];
-    wchar_t *nameCpy = new wchar_t[entry->name->size()];
-    wchar_t *lockedDescCpy = new wchar_t[entry->lockedDescription->size()];
-    wchar_t *unlockedDescCpy = new wchar_t[entry->unlockedDescription->size()];
-
-    memcpy(nameCpy, entry->name, nameLen);
-    memcpy(lockedDescCpy, entry->lockedDescription, lockedDescLen);
-    memcpy(unlockedDescCpy, entry->unlockedDescription, unlockedDescLen);
-
-    swapAchievementEndianness(entry);
-    memcpy(data, &entry->size, 0x1C);
-    swapAchievementEndianness(entry);
-
-    SwapEndianUnicode(nameCpy, nameLen);
-    SwapEndianUnicode(lockedDescCpy, lockedDescLen);
-    SwapEndianUnicode(unlockedDescCpy, unlockedDescLen);
-
-    memcpy(&data[0x1C], nameCpy, nameLen);
-    memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
-    memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
-
-    injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
-
-    delete[] nameCpy;
-    delete[] lockedDescCpy;
-    delete[] unlockedDescCpy;
-}
-
-void XDBF::injectImageEntry(char *imageData, unsigned int len, unsigned long long id)
-{
-    injectEntry_private(ET_IMAGE, imageData, len, (id == 0) ? getNextId(ET_IMAGE) : id);
-}
-
-unsigned long long XDBF::getNextId(unsigned short type)
-{
-    unsigned long long maxId = private_entries[0].identifier;
-    for (int i = 1; i < private_entries.size(); i++)
-    {
-        if ((maxId < private_entries[i].identifier) && (private_entries[i].type == type) && (private_entries[i].identifier != SYNC_LIST && private_entries[i].identifier != SYNC_DATA && private_entries[i].identifier != TITLE_INFORMATION))
-            maxId = private_entries[i].identifier;
-    }
-    return maxId + 1;
+    return 0;
 }
 
 void XDBF::writeEntryTable()
@@ -638,6 +647,11 @@ void XDBF::removeEntry(Entry *entry)
 {
     if (entry == NULL)
         return;
+
+
+    // remove sync entry
+    Sync_List list = get_sync_list(entry->type, (entry->type == ET_AVATAR_AWARD) ? 1 : SYNC_LIST);
+    removeSyncEntry(entry->identifier, &list);
 
     Entry temp = *entry;
 
@@ -717,11 +731,11 @@ void XDBF::injectTitleEntry(Title_Entry *entry, unsigned long long id)
     delete[] tempName;
 }
 
-void XDBF::removeSyncEntry(Sync_Entry *entr, Sync_List *list)
+void XDBF::removeSyncEntry(unsigned long long identifier, Sync_List *list)
 {
     bool found = false;
-    for(int i = 0; i < list->entry_count - 1; i++)
-        if(memcmp(entr, &list->entries->at(i), sizeof(Entry)) == 0)
+    for(int i = 0; i < list->entry_count; i++)
+        if (list->entries->at(i).identifier == identifier)
         {
             list->entries->erase(list->entries->begin() + i);
             list->entry_count--;

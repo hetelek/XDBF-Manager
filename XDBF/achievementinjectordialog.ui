@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Achievement Adder Dialog</string>
   </property>
   <widget class="QLabel" name="typeDescLbl">
    <property name="geometry">

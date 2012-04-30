@@ -60,7 +60,8 @@ public:
     void injectTitleEntry(Title_Entry *entry, unsigned long long id = 0);
     unsigned long long getNextId(unsigned short type);
     void removeEntry(Entry *entry);
-    void removeSyncEntry(Sync_Entry *entr, Sync_List *list);
+    void removeSyncEntry(unsigned long long identifier, Sync_List *list);
+    long fmalloc(size_t amount); //FINSIH
 
     static std::string FILETIME_to_string(FILETIME *pft);
 

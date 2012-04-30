@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "xdbf.h"
+#include <QtGui/QLineEdit>
 
 namespace Ui {
 class TitleInjectorDialog;
@@ -18,9 +19,13 @@ public:
     
 private slots:
     void on_pushButton_clicked();
+    void showRemoveContextMenu(const QPoint& pos);
+
+    void on_pushButton_2_clicked();
 
 private:
     Ui::TitleInjectorDialog *ui;
+    bool hexNumbersOnly(QLineEdit *lineEdit);
     XDBF *xdbf;
 };
 

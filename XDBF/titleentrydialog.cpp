@@ -36,8 +36,10 @@ TitleEntryDialog::TitleEntryDialog(QWidget *parent, Title_Entry *te) : QDialog(p
 void TitleEntryDialog::replyFinished(QNetworkReply* aReply)
 {
     QByteArray boxArt = aReply->readAll();
-    if(boxArt.size() != 0)
+    if(boxArt.size() != 0 && !boxArt.contains("File not found."))
+    {
         ui->boxArtImg->setPixmap(QPixmap::fromImage(QImage::fromData(boxArt)));
+    }
     else
     {
         ui->boxArtImg->setText("<i>Unable to download image.</i>");
