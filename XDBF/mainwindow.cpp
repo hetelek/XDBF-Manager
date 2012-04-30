@@ -301,3 +301,8 @@ void MainWindow::on_pushButton_3_clicked()
         ui->tableWidget->removeRow(item->row());
     }
 }
+
+void MainWindow::on_pushButton_4_clicked()
+{
+     QMessageBox::information(this, "", QString::number(xdbf->fmalloc(2000), 16));
+}

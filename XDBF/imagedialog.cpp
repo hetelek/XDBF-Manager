@@ -1,18 +1,12 @@
 #include "imagedialog.h"
 #include "ui_imagedialog.h"
 
-ImageDialog::ImageDialog(QWidget *parent, QImage *img_) : QDialog(parent), ui(new Ui::ImageDialog)
+ImageDialog::ImageDialog(QWidget *parent, QImage *img_) : QDialog(parent), ui(new Ui::ImageDialog), img(img_)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 
-    img = img_;
     ui->label->setPixmap(QPixmap::fromImage(*img));
-    ui->label->setMaximumSize(img->size());
-
-    if(ui->label->width() < minimumWidth())
-        ui->label->setGeometry((width() / 2) - (ui->label->width() / 2), ui->label->geometry().y(), img->width(), img->height());
-
     ui->label_2->setText("(" + QString::number(img->width()) + ", " + QString::number(img->height()) + ")");
 
     this->setFixedSize(this->sizeHint());

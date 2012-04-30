@@ -99,6 +99,9 @@ void AchievementInjectorDialog::on_pushButton_clicked()
 
     // inject the achievement entry
     xdbf->injectAchievementEntry(&entry);
+
+    QMessageBox::information(this, "Success", "Successfully added achievement entry.");
+    close();
 }
 
 bool AchievementInjectorDialog::numbersOnly(QString s)

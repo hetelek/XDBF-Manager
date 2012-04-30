@@ -371,10 +371,7 @@ void XDBF::write_sync_list(Sync_List *sl)
         diff = entr1->length - newSize;
 
     if(diff < 0)
-    {
-        ffree(entr1->address, entr1->length);
-        sl->list_entry->address = fmalloc(newSize);
-    }
+        throw "Injecting entries is not supported";
 
     vector<Sync_Entry> queuedEntries, nonqueuedEntries;
 
@@ -382,9 +379,13 @@ void XDBF::write_sync_list(Sync_List *sl)
     for(int i = 0; i < sl->entry_count; i++)
     {
         if(sl->entries->at(i).sync_id != 0)
+        {
             queuedEntries.push_back(sl->entries->at(i));
+        }
         else
+        {
             nonqueuedEntries.push_back(sl->entries->at(i));
+        }
     }
 
     // write non-queued entries
@@ -418,12 +419,17 @@ void XDBF::write_sync_list(Sync_List *sl)
         opened_file->write(h->free_memory_table_entry_count);
         freeMemTable.entryCount++;
 
-        ffree(sl->list_entry->address, newSize);
-    }
+        // mark entry as unused memory
+        FreeMemoryEntry freeMem = { getFakeOffset(sl->list_entry->address + newSize), diff };
+        freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), freeMem);
 
-    // update the entry size
-    sl->list_entry->length = newSize;
-    writeEntryTable();
+        // re-write the free memory table
+        writeFreeMemoryTable();
+
+        // update the entry size
+        sl->list_entry->length = newSize;
+        writeEntryTable();
+    }
 }
 
 Sync_Data XDBF::get_sync_data(int et_type, unsigned long long identifier)
@@ -527,26 +533,18 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
 
     Entry newEntry = { type, id, 0, dataLen };
 
-    // update sync list stuffs
-    // string/image entries don't have sync lists
-    if (newEntry.type != ET_STRING && newEntry.type != ET_IMAGE)
-    {
-        Sync_Entry entry;
-        entry.identifier = id;
-        entry.sync_id = 1;
-        Sync_List sl = get_sync_list(type, (type == ET_AVATAR_AWARD) ? 1 : SYNC_LIST);
-        sl.entries->push_back(entry);
-        sl.entry_count++;
-        write_sync_list(&sl);
-    }
+    // need to update sync list stuffs
+
 
     // update entry count
     opened_file->setPosition(0xC);
     opened_file->write(h->entry_count);
 
     // append entry to file
+    /*opened_file->setPosition(0, ios_base::end);
+    newEntry.address = opened_file->getPosition(); */
     long addr = fmalloc(dataLen);
-    newEntry.address = addr;
+    newEntry.address = getFakeAddress(addr);
     opened_file->setPosition(addr);
     opened_file->write(entryData, dataLen);
 
@@ -610,12 +608,17 @@ unsigned long long XDBF::getNextId(unsigned short type)
     return maxId + 1;
 }
 
-unsigned int XDBF::fmalloc(size_t dataLen)
+long XDBF::fmalloc(size_t dataLen)
 {
+<<<<<<< HEAD
+    /* int indexWithClosestVal = -1;a
+    for(int i = 0; i < freeMemTable.entryCount; i++)
+=======
     // get the index of the entry whose length is closest in size
     // to the requested amount of memory
     int indexWithClosestVal = -1;
     for(int i = 0; i < freeMemTable.entryCount - 1; i++)
+>>>>>>> de6933fe87f47a9a07d0574da540271b62ee2567
     {
         if(freeMemTable.entries->at(i).length == dataLen)
         {
@@ -639,7 +642,7 @@ unsigned int XDBF::fmalloc(size_t dataLen)
     {
         // store the len and addr for later user, because we're gonna delete the entry
         // from the list
-        int addr = get_offset(freeMemTable.entries->at(indexWithClosestVal).offsetSpecifier, h);
+        long addr = get_offset(freeMemTable.entries->at(indexWithClosestVal).offsetSpecifier, h);
         int len = freeMemTable.entries->at(indexWithClosestVal).length;
 
         // erase the entry from the table that we're using
@@ -648,7 +651,7 @@ unsigned int XDBF::fmalloc(size_t dataLen)
         // if the free memory isn't the perfect size, then give some back
         if (len != dataLen)
         {
-            FreeMemoryEntry entry = { getFakeOffset(addr + dataLen),  (len - dataLen) };
+            FreeMemoryEntry entry = { getFakeOffset(addr + dataLen),  (dataLen - len) };
             freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), entry);
         }
 
@@ -678,18 +681,10 @@ unsigned int XDBF::fmalloc(size_t dataLen)
     }
 }
 
-void XDBF::ffree(unsigned int address, size_t size)
-{
-    FreeMemoryEntry entry = { getFakeOffset(address),  size };
-    freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 1), entry);
-
-    writeFreeMemoryTable();
-}
-
 void XDBF::writeEntryTable()
 {
     // re-write entry table
-    for (int i = 0; i < h->entry_count - 1; i++)
+    for (int i = 0; i < h->entry_count; i++)
     {
         opened_file->setPosition((i * 0x12) + 0x18);
         opened_file->write(private_entries[i].type);
