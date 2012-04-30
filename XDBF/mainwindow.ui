@@ -58,13 +58,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_4">
-        <property name="text">
-         <string>Fmalloc</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
    </layout>

@@ -164,7 +164,10 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
         }
         else
         {
-
+            Sync_Data data = xdbf->get_sync_data(e->type, e->identifier);
+            QMessageBox::about(this, "Sync Data", "<html><center><h3>Sync Data</h3></center><hr /><br /><b>Next Sync Value: </b>" + QString::number(data.next_sync_id) +
+                               "<br /><b>Last Sync Value: </b>" + QString::number(data.last_sync_id) + "<br /><b>Last Synced Time: </b>" +
+                               QString::fromStdString(XDBF::FILETIME_to_string(&data.last_synced_time)) + "</html>");
         }
         return;
     }
@@ -300,9 +303,4 @@ void MainWindow::on_pushButton_3_clicked()
 
         ui->tableWidget->removeRow(item->row());
     }
-}
-
-void MainWindow::on_pushButton_4_clicked()
-{
-     QMessageBox::information(this, "", QString::number(xdbf->fmalloc(2000), 16));
 }

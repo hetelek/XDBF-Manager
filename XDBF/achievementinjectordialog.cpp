@@ -76,7 +76,7 @@ void AchievementInjectorDialog::on_pushButton_clicked()
     // set the flags, inlcudes the type and whether or not the achievement is secret
     entry.gamerscore = ui->gamerscoreTxt->text().toUInt();
     entry.flags |= (ui->comboBox->currentIndex() + 1);
-    entry.flags &= (ui->secretChbx->checkState() == 2) ? 8 : 0;
+    entry.flags |= (ui->secretChbx->checkState() == 2) ? 8 : 0;
 
     unsigned long long imageID = 0;
 
@@ -96,6 +96,9 @@ void AchievementInjectorDialog::on_pushButton_clicked()
         // inject the new image entry
         xdbf->injectImageEntry(ba.data(), ba.length(), imageID);
     }
+
+    entry.unlockedTime.dwHighDateTime = 0x0E434800;
+    entry.unlockedTime.dwLowDateTime = 0x01BF5415;
 
     // inject the achievement entry
     xdbf->injectAchievementEntry(&entry);

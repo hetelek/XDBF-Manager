@@ -44,7 +44,37 @@
          </item>
          <item>
           <property name="text">
-           <string>Setting</string>
+           <string>Setting - Int32</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Setting - Int64</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Setting - Double</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Setting - String</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Setting - Float</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Setting - Binary</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Setting - DateTime</string>
           </property>
          </item>
          <item>
