@@ -523,13 +523,12 @@ void XDBF::writeEntry(Avatar_Award_Entry *entry)
 
 void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id)
 {
-    h->entry_count++;
-
     Entry newEntry = { type, id, 0, dataLen };
 
     // update sync list stuffs
     // string/image entries don't have sync lists
-    if (newEntry.type != ET_STRING && newEntry.type != ET_IMAGE)
+
+    if (newEntry.type != ET_STRING && newEntry.type != ET_IMAGE && newEntry.type <= 6)
     {
         Sync_Entry entry;
         entry.identifier = id;
@@ -552,6 +551,7 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
 
     // add the new entry to the table
     private_entries.push_back(newEntry);
+    h->entry_count++;
     sort(private_entries.begin(), private_entries.end(), &compareFunction);
 
     writeEntryTable();
@@ -689,7 +689,7 @@ void XDBF::ffree(unsigned int address, size_t size)
 void XDBF::writeEntryTable()
 {
     // re-write entry table
-    for (int i = 0; i < h->entry_count - 1; i++)
+    for (int i = 0; i < h->entry_count; i++)
     {
         opened_file->setPosition((i * 0x12) + 0x18);
         opened_file->write(private_entries[i].type);
