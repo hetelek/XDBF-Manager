@@ -61,6 +61,8 @@ TitleInjectorDialog::TitleInjectorDialog(QWidget *parent, XDBF *xdbf, Title_Entr
 
     ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRemoveContextMenu(QPoint)));
+
+    setFixedSize(sizeHint());
 }
 
 TitleInjectorDialog::~TitleInjectorDialog()

@@ -243,12 +243,12 @@ Achievement_Entry* XDBF::get_achievement_entry(Entry *entry)
 
     opened_file->setPosition(entry->address + 0x1C + str1Size);
     wstring *str2 = new wstring(opened_file->readUnicodeString());
-    chiev->lockedDescription = str2;
+    chiev->unlockedDescription = str2;
     int str2Size = WSTRING_BYTES(str2->size());
 
     opened_file->setPosition(entry->address + 0x1C + str1Size + str2Size);
     wstring *str3 = new wstring(opened_file->readUnicodeString());
-    chiev->unlockedDescription = str3;
+    chiev->lockedDescription = str3;
 
     return chiev;
 }
