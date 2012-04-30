@@ -91,9 +91,56 @@ typedef enum
 } SyncEntryStatus;
 
 #pragma pack(push, 1)
+
+
+typedef struct
+{
+    unsigned long long identifier, sync_id;
+} Sync_Entry;
+
+typedef struct
+{
+    unsigned int size;
+    unsigned int id;
+    unsigned int imageID;
+    unsigned int gamerscore;
+    unsigned int flags;
+    FILETIME unlockedTime;
+    std::wstring *name;
+    std::wstring *lockedDescription;
+    std::wstring *unlockedDescription;
+
+} Achievement_Entry;
+
+
+struct Header
+{
+    unsigned int magic, version, entry_table_length, entry_count, free_memory_table_length, free_memory_table_entry_count;
+};
+
+struct FreeMemoryEntry
+{
+    unsigned int offsetSpecifier, length;
+};
+
+struct FreeMemoryTable
+{
+    unsigned int tableLength, entryCount;
+    vector<FreeMemoryEntry> *entries;
+};
+
+struct Entry
+{
+    unsigned short type;
+    unsigned long long identifier;
+    unsigned int address, length;
+};
+
 //From Xbox 360 documentation
 typedef struct
 {
+    Entry *entry;
+
     unsigned char type;
     union
     {
@@ -119,25 +166,8 @@ typedef struct
 
 typedef struct
 {
-    unsigned long long identifier, sync_id;
-} Sync_Entry;
+    Entry *entry;
 
-typedef struct
-{
-    unsigned int size;
-    unsigned int id;
-    unsigned int imageID;
-    unsigned int gamerscore;
-    unsigned int flags;
-    FILETIME unlockedTime;
-    std::wstring *name;
-    std::wstring *lockedDescription;
-    std::wstring *unlockedDescription;
-
-} Achievement_Entry;
-
-typedef struct
-{
     unsigned int titleID;
     int achievementCount;
     int achievementUnlockedCount;
@@ -156,29 +186,6 @@ typedef struct
     std::wstring *gameName;
 
 } Title_Entry;
-
-struct Header
-{
-    unsigned int magic, version, entry_table_length, entry_count, free_memory_table_length, free_memory_table_entry_count;
-};
-
-struct FreeMemoryEntry
-{
-    unsigned int offsetSpecifier, length;
-};
-
-struct FreeMemoryTable
-{
-    unsigned int tableLength, entryCount;
-    vector<FreeMemoryEntry> *entries;
-};
-
-struct Entry
-{
-    unsigned short type;
-    unsigned long long identifier;
-    unsigned int address, length;
-};
 
 typedef struct
 {

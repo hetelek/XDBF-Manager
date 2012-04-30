@@ -3,11 +3,61 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <ctype.h>
+#include <QDateTime>
 
-TitleInjectorDialog::TitleInjectorDialog(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::TitleInjectorDialog), xdbf(xdbf)
+TitleInjectorDialog::TitleInjectorDialog(QWidget *parent, XDBF *xdbf, Title_Entry *tentry) : QDialog(parent), ui(new Ui::TitleInjectorDialog), xdbf(xdbf), tentry(tentry)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+
+    // if the caller passes in a title entry, then we'll display the entry's data
+    if (tentry != NULL)
+    {
+        setWindowTitle("Title Entry Editor");
+        ui->gameNameTxt->setText(QString::fromStdWString(*tentry->gameName));
+        ui->chievCount->setValue(tentry->achievementCount);
+        ui->chievsUnlocked->setValue(tentry->achievementUnlockedCount);
+        ui->chievsUnlockedOnline->setValue(tentry->achievementsUnlockedOnlineCount);
+        ui->gamerscore->setValue(tentry->totalGamerscore);
+        ui->gamerscoreUnlocked->setValue(tentry->gamerscoreUnlocked);
+        ui->aaUnlocked->setValue(tentry->avatarAwardsEarned);
+        ui->aaCount->setValue(tentry->avatarAwardCount);
+        ui->aaMaleUnlocked->setValue(tentry->maleAvatarAwardsEarned);
+        ui->aaMaleCount->setValue(tentry->maleAvatarAwardCount);
+        ui->aaFemaleUnlocked->setValue(tentry->femaleAvatarAwardsEarned);
+        ui->aaFemaleCount->setValue(tentry->femaleAvaterAwardCount);
+        ui->dateTimeEdit->setDateTime(QDateTime::fromTime_t(FILETIME_to_time_t(&tentry->lastPlayed)));
+        ui->titleID->setText(QString::number(tentry->titleID, 16).toUpper());
+
+        // add the flags that are set to the list widget
+        if (tentry->flags & ACHIEVMENT_NOT_SYNCED)
+        {
+            ui->comboBox->removeItem(0);
+            ui->listWidget->addItem("Achievement Not Synced");
+        }
+        if (tentry->flags & DOWNLOAD_ACHIEVEMENT_IMAGE)
+        {
+            ui->comboBox->removeItem(1);
+            ui->listWidget->addItem("Download Achievment Image");
+        }
+        if (tentry->flags & DOWNLOAD_AVATAR_AWARD)
+        {
+            ui->comboBox->removeItem(2);
+            ui->listWidget->addItem("Download Avatar Award");
+        }
+        if (tentry->flags & AVATAR_AWARD_NOT_SYNCED)
+        {
+            ui->comboBox->removeItem(3);
+            ui->listWidget->addItem("Avatar Award Not Synced");
+        }
+
+        // change the button's text to save, because if they provided an entry, then we're
+        // going to save it, not inject the changes as a new entry
+        ui->pushButton_2->setText("Save");
+        QIcon icon;
+        icon.addPixmap(QPixmap::fromImage(QImage(":/images/save.png")));
+        ui->pushButton_2->setIcon(icon);
+    }
 
     ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRemoveContextMenu(QPoint)));
@@ -71,6 +121,7 @@ void TitleInjectorDialog::on_pushButton_2_clicked()
     // set most of the fields in the new title entry
     Title_Entry entry =
     {
+        NULL,
         ui->titleID->text().toInt(0, 16),
         ui->chievCount->value(),
         ui->chievsUnlocked->value(),
@@ -107,12 +158,21 @@ void TitleInjectorDialog::on_pushButton_2_clicked()
             entry.flags |= AVATAR_AWARD_NOT_SYNCED;
     }
 
-    // inject the new title entry
-    xdbf->injectTitleEntry(&entry, entry.titleID);
+    if (tentry == NULL)
+    {
+        // inject the new title entry
+        xdbf->injectTitleEntry(&entry, entry.titleID);
+
+        QMessageBox::information(this, "Success", "Successfully added the new title entry!");
+    }
+    else
+    {
+         entry.entry = tentry->entry;
+         xdbf->writeEntry(&entry);
+         QMessageBox::information(this, "Success", "Successfully saved the title entry!");
+    }
 
     delete name;
-
-    QMessageBox::information(this, "Success", "Successfully added the new title entry!");
     close();
 }
 

@@ -4,6 +4,7 @@
 #include "titleentrydialog.h"
 #include "avatarawarddialog.h"
 #include "newentrychooser.h"
+#include "titleinjectordialog.h"
 
 Q_DECLARE_METATYPE(Entry*)
 
@@ -221,8 +222,8 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
         Title_Entry *tent = xdbf->get_title_entry(e);
         if (tent == NULL)
             return;
+        TitleInjectorDialog dialog(this, xdbf, tent);
 
-        TitleEntryDialog dialog(this, tent);
         dialog.exec();
     }
     else if (e->type == ET_ACHIEVEMENT)

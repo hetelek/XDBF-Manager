@@ -127,6 +127,7 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
         return NULL;
 
     Setting_Entry *s_entry = new Setting_Entry;
+    s_entry->entry = entry;
     opened_file->setPosition(entry->address + 0x8);
     opened_file->read(&s_entry->type, 1);
     opened_file->setPosition(entry->address + 0x10);
@@ -200,6 +201,7 @@ Title_Entry* XDBF::get_title_entry(Entry *entry)
         return NULL;
 
     Title_Entry *t_entry = new Title_Entry;
+    t_entry->entry = entry;
     opened_file->setPosition(entry->address);
     t_entry->titleID = opened_file->readUInt32();
     t_entry->achievementCount = opened_file->readInt32();
@@ -208,6 +210,8 @@ Title_Entry* XDBF::get_title_entry(Entry *entry)
     t_entry->gamerscoreUnlocked = opened_file->readUInt32();
     opened_file->read(&t_entry->unknown, 8);
     t_entry->flags = opened_file->readUInt32();
+    t_entry->lastPlayed.dwHighDateTime = opened_file->readUInt32();
+    t_entry->lastPlayed.dwLowDateTime = opened_file->readUInt32();
 
     opened_file->setPosition(entry->address + 0x28);
     wstring *a = new wstring(opened_file->readUnicodeString());
@@ -521,7 +525,7 @@ void XDBF::writeEntry(Avatar_Award_Entry *entry)
     opened_file->write((unsigned int)entry->unlockTime.dwLowDateTime);
 }
 
-void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id)
+Entry* XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id)
 {
     Entry newEntry = { type, id, 0, dataLen };
 
@@ -555,6 +559,8 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     sort(private_entries.begin(), private_entries.end(), &compareFunction);
 
     writeEntryTable();
+
+    return get_entry_by_id(id, type);
 }
 
 void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
@@ -761,7 +767,7 @@ void XDBF::injectTitleEntry(Title_Entry *entry, unsigned long long id)
     swapTitleEndianness(entry);
 
     // copy the title entry informaion to the data to write
-    memcpy(data, entry, 0x28);
+    memcpy(data, &entry->titleID, 0x28);
 
     // swap the title endianess back so it's not screwed up for later use
     swapTitleEndianness(entry);
@@ -780,7 +786,7 @@ void XDBF::injectTitleEntry(Title_Entry *entry, unsigned long long id)
     memcpy(data + 0x28, tempName, WSTRING_BYTES(entry->gameName->length()));
 
     // inject the entry
-    injectEntry_private(ET_TITLE, data, 0x28 + WSTRING_BYTES(entry->gameName->length()), id);
+    entry->entry = injectEntry_private(ET_TITLE, data, 0x28 + WSTRING_BYTES(entry->gameName->length()), id);
 
     // give the allocated memory back to the heap
     delete[] data;
@@ -814,6 +820,70 @@ void XDBF::swapTitleEndianness(Title_Entry *entry)
     SwapEndian(&entry->gamerscoreUnlocked);
     SwapEndian(&entry->flags);
     SwapEndian((unsigned long long*)&entry->lastPlayed);
+}
+
+void XDBF::writeEntry(Title_Entry *entry)
+{
+    // seek to the entry's position
+    opened_file->setPosition(entry->entry->address);
+
+    // write the data
+    opened_file->write(entry->titleID);
+    opened_file->write(entry->achievementCount);
+    opened_file->write(entry->achievementUnlockedCount);
+    opened_file->write(entry->totalGamerscore);
+    opened_file->write(entry->gamerscoreUnlocked);
+    opened_file->write(*(unsigned long long*)&entry->unknown);
+    /*opened_file->write(entry->achievementsUnlockedOnlineCount);
+    opened_file->write(entry->avatarAwardsEarned);
+    opened_file->write(entry->avatarAwardCount);
+    opened_file->write(entry->maleAvatarAwardsEarned);
+    opened_file->write(entry->maleAvatarAwardCount);
+    opened_file->write(entry->femaleAvatarAwardsEarned);
+    opened_file->write(entry->femaleAvaterAwardCount); */
+    opened_file->write(entry->flags);
+    opened_file->write((unsigned int)entry->lastPlayed.dwHighDateTime);
+    opened_file->write((unsigned int)entry->lastPlayed.dwLowDateTime);
+}
+
+void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
+{
+    char *data;
+    if (id == 0)
+        id = getNextId(ET_SETTING);
+    switch (entry->type)
+    {
+        case SET_INT32:
+            // allocate enough memory for an int32 setting entry
+            data = new char[0x18];
+            // zero out the write buffer
+            memset(data, 0, 0x18);
+
+            // write the setting mete data, so the id and type
+            writeSettingMetaData(data, id, entry->type);
+
+            // copy the int32 data to the write buffer
+            SwapEndian((unsigned int*)&entry->i32_data);
+            memcpy(data, &entry->i32_data, 4);
+            SwapEndian((unsigned int*)&entry->i32_data);
+
+            // inject the new entry
+            entry->entry = injectEntry_private(ET_SETTING, data, 0x18, id);
+
+            break;
+    }
+
+    delete[] data;
+}
+
+void XDBF::writeSettingMetaData(char *buffer, unsigned long long id, unsigned char type)
+{
+    // copy the entry id to the data buffer
+    SwapEndian(&id);
+    memcpy(buffer, &id, 8);
+
+    // copy the type to the setting data
+    memcpy(&buffer[8], &type, 1);
 }
 
 //for sorting entries

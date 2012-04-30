@@ -23,7 +23,6 @@ SOURCES += main.cpp\
     xdbfhelper.cpp \
     achievementviewer.cpp \
     binarydialog.cpp \
-    titleentrydialog.cpp \
     synclistdialog.cpp \
     avatarawarddialog.cpp \
     achievementinjectordialog.cpp \
@@ -38,7 +37,6 @@ HEADERS  += mainwindow.h \
     xdbfhelper.h \
     achievementviewer.h \
     binarydialog.h \
-    titleentrydialog.h \
     synclistdialog.h \
     avatarawarddialog.h \
     achievementinjectordialog.h \
@@ -51,7 +49,6 @@ FORMS    += mainwindow.ui \
     imagedialog.ui \
     achievementviewer.ui \
     binarydialog.ui \
-    titleentrydialog.ui \
     synclistdialog.ui \
     avatarawarddialog.ui \
     achievementinjectordialog.ui \

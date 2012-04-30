@@ -14,7 +14,7 @@ class TitleInjectorDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit TitleInjectorDialog(QWidget *parent = 0, XDBF *xdbf = NULL);
+    explicit TitleInjectorDialog(QWidget *parent = 0, XDBF *xdbf = NULL, Title_Entry *tentry = NULL);
     ~TitleInjectorDialog();
     
 private slots:
@@ -27,6 +27,7 @@ private:
     Ui::TitleInjectorDialog *ui;
     bool hexNumbersOnly(QLineEdit *lineEdit);
     XDBF *xdbf;
+    Title_Entry *tentry;
 };
 
 #endif // TITLEINJECTORDIALOG_H

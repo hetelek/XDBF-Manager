@@ -54,10 +54,12 @@ public:
     void write_sync_list(Sync_List *sl);
     Avatar_Award_Entry* get_avatar_award_entry(Entry *entry);
     void writeEntry(Entry *entry, Achievement_Entry *chiev);
+    void writeEntry(Title_Entry *entry);
     void writeEntry(Avatar_Award_Entry *e);
     void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id = 0);
     void injectImageEntry(char *imageData, unsigned int len, unsigned long long id);
     void injectTitleEntry(Title_Entry *entry, unsigned long long id = 0);
+    void injectSettingEntry(Setting_Entry *entry, unsigned long long id = 0);
     unsigned long long getNextId(unsigned short type);
     void removeEntry(Entry *entry);
     void removeSyncEntry(unsigned long long identifier, Sync_List *list);
@@ -74,11 +76,12 @@ private:
     int get_offset(unsigned int offset_specifier, Header *h);
     int getFakeOffset(unsigned int realAddress);
     bool reverse;
-    void injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
+    Entry* injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
     void swapAchievementEndianness(Achievement_Entry *entry);
     void swapTitleEndianness(Title_Entry *entry);
     void writeEntryTable();
     void writeFreeMemoryTable();
+    void writeSettingMetaData(char *buffer, unsigned long long id, unsigned char type);
 };
 
 bool compareFunction(Entry e1, Entry e2);
