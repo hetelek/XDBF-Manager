@@ -10,6 +10,8 @@ AchievementInjectorDialog::AchievementInjectorDialog(QWidget *parent, XDBF *xdbf
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+
+    setFixedSize(sizeHint());
 }
 
 AchievementInjectorDialog::~AchievementInjectorDialog()
@@ -47,10 +49,6 @@ void AchievementInjectorDialog::on_comboBox_currentIndexChanged(int index)
 
 void AchievementInjectorDialog::on_pushButton_clicked()
 {
-    // enusre that the gamerscore textbox only contains numbers
-    if (!numbersOnly(ui->gamerscoreTxt->text()))
-        return;
-
     Achievement_Entry entry = {0};
 
     // set the entry's name, i have to make a copy of the text so that the internal function can
@@ -74,7 +72,7 @@ void AchievementInjectorDialog::on_pushButton_clicked()
     entry.unlockedDescription = new std::wstring(unlockedDescTemp);
 
     // set the flags, inlcudes the type and whether or not the achievement is secret
-    entry.gamerscore = ui->gamerscoreTxt->text().toUInt();
+    entry.gamerscore = ui->gamerscoreSpin->value();
     entry.flags |= (ui->comboBox->currentIndex() + 1);
     entry.flags |= (ui->secretChbx->checkState() == 2) ? 8 : 0;
 
@@ -105,14 +103,6 @@ void AchievementInjectorDialog::on_pushButton_clicked()
 
     QMessageBox::information(this, "Success", "Successfully added achievement entry.");
     close();
-}
-
-bool AchievementInjectorDialog::numbersOnly(QString s)
-{
-    for (int i = 0; i < s.length(); i++)
-        if (!s.at(i).isDigit())
-            return false;
-    return true;
 }
 
 void AchievementInjectorDialog::on_imageChbx_stateChanged(int arg1)

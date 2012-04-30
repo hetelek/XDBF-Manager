@@ -38,6 +38,8 @@ AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, 
     int state = (chiev->flags >> 16) & 3;
     ui->stateCmbx->setCurrentIndex((state == 0) ? 0 : state - 1);
     ui->label_2->setPixmap(QPixmap::fromImage(image));
+
+    setFixedSize(sizeHint());
 }
 
 AchievementViewer::~AchievementViewer()

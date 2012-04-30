@@ -6,6 +6,8 @@
 SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf) : xdbf(xdbf), QDialog(parent), ui(new Ui::SettingInjectorInt)
 {
     ui->setupUi(this);
+
+    setFixedSize(sizeHint());
 }
 
 SettingInjectorInt::~SettingInjectorInt()

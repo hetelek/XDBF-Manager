@@ -28,6 +28,8 @@ SyncListDialog::SyncListDialog(QWidget *parent, Sync_List *_list, XDBF *_xdbf) :
             ui->tableWidget_syncList->setItem(row, 0, lwi);
         }
     }
+
+    setFixedSize(sizeHint());
 }
 
 SyncListDialog::~SyncListDialog()

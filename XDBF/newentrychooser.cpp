@@ -8,6 +8,8 @@ NewEntryChooser::NewEntryChooser(QWidget *parent, XDBF *xdbf) : QDialog(parent),
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+
+    setFixedSize(sizeHint());
 }
 
 NewEntryChooser::~NewEntryChooser()

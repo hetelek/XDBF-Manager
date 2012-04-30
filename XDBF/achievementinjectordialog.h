@@ -26,7 +26,6 @@ private slots:
 
 private:
     Ui::AchievementInjectorDialog *ui;
-    bool numbersOnly(QString s);
     XDBF *xdbf;
     QImage image;
 };

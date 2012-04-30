@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <time.h>
-#include "titleentrydialog.h"
 #include "avatarawarddialog.h"
 #include "newentrychooser.h"
 
@@ -108,26 +107,38 @@ void MainWindow::on_pushButton_clicked()
     if(ui->tableWidget->selectedItems().count() < 1)
         return;
 
-    QList<QTableWidgetItem*> list = ui->tableWidget->selectedItems();
     QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Directory"), desktop_location) + "\\";
 
     if(dir == "\\")
         return;
 
-    for(int i = 0; i < list.size() / ui->tableWidget->columnCount(); i++)
+    int c = ui->tableWidget->selectedItems().count() / ui->tableWidget->columnCount();
+    for(int i = 0; i < c; i++)
     {
+        QTableWidgetItem* item = ui->tableWidget->selectedItems()[i];
+        Entry *e = item->data(ObjectRole).value<Entry*>();
+
         FILE *f;
 
-        QString path = dir + ui->tableWidget->item(list[i]->row(), 0)->text().remove("0x");
+        QString path = dir + "0x" + QString::number(e->identifier, 16).toUpper() + " - " + friendlyNames[e->type - 1];
+
+        if(QFileInfo(path).exists())
+        {
+            int adder = 2;
+            while(QFileInfo(path + "(" + QString::number(adder) + ")").exists())
+                adder++;
+
+            path += "(" + QString::number(adder) + ")";
+        }
+
         QByteArray ba = path.toAscii();
         char *path_c = ba.data();
         f = fopen(path_c, "wb");
 
         try
         {
-            Entry *entry = list[i]->data(ObjectRole).value<Entry*>();
-            char *data = xdbf->extract_entry(entry);
-            fwrite(data, entry->length, sizeof(char), f);
+            char *data = xdbf->extract_entry(e);
+            fwrite(data, e->length, sizeof(char), f);
             fclose(f);
         }
         catch(char *exce)
@@ -147,6 +158,8 @@ void MainWindow::on_actionClose_triggered()
     xdbf->close();
     xdbf = NULL;
     clear_items();
+
+    setWindowTitle("XDBF Manager");
 }
 
 void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
@@ -218,12 +231,6 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     }
     else if (e->type == ET_TITLE)
     {
-        Title_Entry *tent = xdbf->get_title_entry(e);
-        if (tent == NULL)
-            return;
-
-        TitleEntryDialog dialog(this, tent);
-        dialog.exec();
     }
     else if (e->type == ET_ACHIEVEMENT)
     {
