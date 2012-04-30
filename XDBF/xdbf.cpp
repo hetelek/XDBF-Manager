@@ -541,8 +541,11 @@ void XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int 
     opened_file->write(h->entry_count);
 
     // append entry to file
-    opened_file->setPosition(0, ios_base::end);
-    newEntry.address = opened_file->getPosition();
+    /*opened_file->setPosition(0, ios_base::end);
+    newEntry.address = opened_file->getPosition(); */
+    long addr = fmalloc(dataLen);
+    newEntry.address = getFakeAddress(addr);
+    opened_file->setPosition(addr);
     opened_file->write(entryData, dataLen);
 
     // add the new entry to the table
@@ -605,10 +608,12 @@ unsigned long long XDBF::getNextId(unsigned short type)
     return maxId + 1;
 }
 
-long XDBF::fmalloc(size_t amount)
+long XDBF::fmalloc(size_t dataLen)
 {
-    /* int indexWithClosestVal = -1;
-    for(int i = 0; i < freeMemTable.entryCount; i++)
+    // get the index of the entry whose length is closest in size
+    // to the requested amount of memory
+    int indexWithClosestVal = -1;
+    for(int i = 0; i < freeMemTable.entryCount - 1; i++)
     {
         if(freeMemTable.entries->at(i).length == dataLen)
         {
@@ -625,9 +630,50 @@ long XDBF::fmalloc(size_t amount)
                     indexWithClosestVal = i;
             }
         }
-    } */
+    }
 
-    return 0;
+    // if memory was found in the free entry table
+    if (indexWithClosestVal != -1)
+    {
+        // store the len and addr for later user, because we're gonna delete the entry
+        // from the list
+        long addr = get_offset(freeMemTable.entries->at(indexWithClosestVal).offsetSpecifier, h);
+        int len = freeMemTable.entries->at(indexWithClosestVal).length;
+
+        // erase the entry from the table that we're using
+        freeMemTable.entries->erase(freeMemTable.entries->begin() + indexWithClosestVal);
+
+        // if the free memory isn't the perfect size, then give some back
+        if (len != dataLen)
+        {
+            FreeMemoryEntry entry = { getFakeOffset(addr + dataLen),  (dataLen - len) };
+            freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), entry);
+        }
+
+        // re-write the entry table
+        writeFreeMemoryTable();
+
+        return addr;
+    }
+    // if there wasn't enough consecutive free memory available, we'll append it to the file
+    else
+    {
+        // seek to the end of the file
+        opened_file->setPosition(0, ios_base::end);
+
+        // store the address of the current file end, becasue when we append
+        // the reqested amount of memory, this current position will be the location
+        // of the allocated memory
+        long freeMemAddr = opened_file->getPosition();
+
+        // append the memory to the file
+        char *temp = new char[dataLen];
+        opened_file->write(temp, dataLen);
+
+        delete[] temp;
+
+        return freeMemAddr;
+    }
 }
 
 void XDBF::writeEntryTable()

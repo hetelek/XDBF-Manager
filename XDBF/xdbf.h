@@ -61,7 +61,7 @@ public:
     unsigned long long getNextId(unsigned short type);
     void removeEntry(Entry *entry);
     void removeSyncEntry(unsigned long long identifier, Sync_List *list);
-    long fmalloc(size_t amount); //FINSIH
+    long fmalloc(size_t dataLen);
 
     static std::string FILETIME_to_string(FILETIME *pft);
 
