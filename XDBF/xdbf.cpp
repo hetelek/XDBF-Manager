@@ -607,7 +607,7 @@ unsigned long long XDBF::getNextId(unsigned short type)
 
 long XDBF::fmalloc(size_t amount)
 {
-    /* int indexWithClosestVal = -1;
+    /* int indexWithClosestVal = -1;a
     for(int i = 0; i < freeMemTable.entryCount; i++)
     {
         if(freeMemTable.entries->at(i).length == dataLen)

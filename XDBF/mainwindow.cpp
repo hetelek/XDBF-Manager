@@ -294,7 +294,7 @@ void MainWindow::on_pushButton_3_clicked()
 
     for(int i = 0; i < ui->tableWidget->selectedItems().count(); i++)
     {
-        QTableWidgetItem* item = ui->tableWidget->selectedItems()[i];
+        QTableWidgetItem *item = ui->tableWidget->selectedItems()[i];
         Entry *e = item->data(ObjectRole).value<Entry*>();
         xdbf->removeEntry(e);
 
