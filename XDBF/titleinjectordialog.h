@@ -4,6 +4,9 @@
 #include <QDialog>
 #include "xdbf.h"
 #include <QtGui/QLineEdit>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
 
 namespace Ui {
 class TitleInjectorDialog;
@@ -20,7 +23,7 @@ public:
 private slots:
     void on_pushButton_clicked();
     void showRemoveContextMenu(const QPoint& pos);
-
+    void replyFinished(QNetworkReply* aReply);
     void on_pushButton_2_clicked();
 
 private:

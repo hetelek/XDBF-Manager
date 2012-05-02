@@ -132,7 +132,7 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
     opened_file->read(&s_entry->type, 1);
     opened_file->setPosition(entry->address + 0x10);
 
-    wchar_t *str_temp;
+    wstring *str;
     switch (s_entry->type)
     {
         case SET_CONTEXT:
@@ -154,7 +154,8 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
         case SET_UNICODE:
             s_entry->unicode_string.str_len_in_bytes = (unsigned long)opened_file->readUInt32();
             opened_file->setPosition(entry->address + 0x18);
-            s_entry->unicode_string.str = &opened_file->readUnicodeString();
+            str = new wstring(opened_file->readUnicodeString());
+            s_entry->unicode_string.str = str;
             break;
 
         case SET_FLOAT:
@@ -206,8 +207,8 @@ Title_Entry* XDBF::get_title_entry(Entry *entry)
     t_entry->titleID = opened_file->readUInt32();
     t_entry->achievementCount = opened_file->readInt32();
     t_entry->achievementUnlockedCount = opened_file->readInt32();
-    t_entry->totalGamerscore = opened_file->readUInt32();
     t_entry->gamerscoreUnlocked = opened_file->readUInt32();
+    t_entry->totalGamerscore = opened_file->readUInt32();
     opened_file->read(&t_entry->unknown, 8);
     t_entry->flags = opened_file->readUInt32();
     t_entry->lastPlayed.dwHighDateTime = opened_file->readUInt32();
@@ -819,7 +820,8 @@ void XDBF::swapTitleEndianness(Title_Entry *entry)
     SwapEndian(&entry->totalGamerscore);
     SwapEndian(&entry->gamerscoreUnlocked);
     SwapEndian(&entry->flags);
-    SwapEndian((unsigned long long*)&entry->lastPlayed);
+    SwapEndian(&entry->lastPlayed.dwHighDateTime);
+    SwapEndian(&entry->lastPlayed.dwLowDateTime);
 }
 
 void XDBF::writeEntry(Title_Entry *entry)
@@ -864,7 +866,7 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
 
             // copy the int32 data to the write buffer
             SwapEndian((unsigned int*)&entry->i32_data);
-            memcpy(data, &entry->i32_data, 4);
+            memcpy(data + 0x10, &entry->i32_data, 4);
             SwapEndian((unsigned int*)&entry->i32_data);
 
             // inject the new entry

@@ -29,25 +29,31 @@ TitleInjectorDialog::TitleInjectorDialog(QWidget *parent, XDBF *xdbf, Title_Entr
         ui->dateTimeEdit->setDateTime(QDateTime::fromTime_t(FILETIME_to_time_t(&tentry->lastPlayed)));
         ui->titleID->setText(QString::number(tentry->titleID, 16).toUpper());
 
+        int removed = 0;
+
         // add the flags that are set to the list widget
         if (tentry->flags & ACHIEVMENT_NOT_SYNCED)
         {
             ui->comboBox->removeItem(0);
+            removed++;
             ui->listWidget->addItem("Achievement Not Synced");
         }
         if (tentry->flags & DOWNLOAD_ACHIEVEMENT_IMAGE)
         {
-            ui->comboBox->removeItem(1);
+            ui->comboBox->removeItem(removed - 1);
+            removed++;
             ui->listWidget->addItem("Download Achievment Image");
         }
         if (tentry->flags & DOWNLOAD_AVATAR_AWARD)
         {
-            ui->comboBox->removeItem(2);
+            ui->comboBox->removeItem(removed - 2);
+            removed++;
             ui->listWidget->addItem("Download Avatar Award");
         }
         if (tentry->flags & AVATAR_AWARD_NOT_SYNCED)
         {
-            ui->comboBox->removeItem(3);
+            ui->comboBox->removeItem(removed - 3);
+            removed++;
             ui->listWidget->addItem("Avatar Award Not Synced");
         }
 
@@ -57,12 +63,27 @@ TitleInjectorDialog::TitleInjectorDialog(QWidget *parent, XDBF *xdbf, Title_Entr
         QIcon icon;
         icon.addPixmap(QPixmap::fromImage(QImage(":/images/save.png")));
         ui->pushButton_2->setIcon(icon);
+
+        ui->gameNameTxt->setReadOnly(true);
+        ui->titleID->setReadOnly(true);
+
+        // donwload the box art
+        QString url = "http://download.xbox.com/content/images/66acd000-77fe-1000-9115-d802" + QString::number(tentry->titleID, 16) + "/1033/boxartlg.jpg";
+        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+        connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+        manager->get(QNetworkRequest(QUrl(url)));
     }
+    else
+    {
+        ui->horizontalLayout_3->removeWidget(ui->boxArtImg);
+        delete ui->boxArtImg;
+        this->resize(this->geometry().width() - 200, this->geometry().height());
+    }
+
+    setFixedSize(width(), height());
 
     ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRemoveContextMenu(QPoint)));
-
-    setFixedSize(sizeHint());
 }
 
 TitleInjectorDialog::~TitleInjectorDialog()
@@ -186,7 +207,14 @@ bool TitleInjectorDialog::hexNumbersOnly(QLineEdit *lineEdit)
     return true;
 }
 
-
+void TitleInjectorDialog::replyFinished(QNetworkReply *aReply)
+{
+    QByteArray boxArt = aReply->readAll();
+    if(boxArt.size() != 0 && !boxArt.contains("File not found."))
+        ui->boxArtImg->setPixmap(QPixmap::fromImage(QImage::fromData(boxArt)));
+    else
+        ui->boxArtImg->setText("<i>Unable to download image.</i>");
+}
 
 
 

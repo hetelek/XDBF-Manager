@@ -307,7 +307,7 @@ p, li { white-space: pre-wrap; }
          <property name="maximumSize">
           <size>
            <width>64</width>
-           <height>64</height>
+           <height>62</height>
           </size>
          </property>
          <property name="font">
