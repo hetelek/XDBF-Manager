@@ -24,31 +24,53 @@ void NewEntryChooser::on_pushButton_2_clicked()
 
 void NewEntryChooser::on_pushButton_clicked()
 {
+   this->setVisible(false);
+
     switch (ui->comboBox->currentIndex())
     {
         case 0:
         {
-            this->setVisible(false);
             AchievementInjectorDialog dialog(this, xdbf);
             dialog.exec();
-            this->close();
             break;
         }
         case 2:
         {
-            this->setVisible(false);
-            SettingInjectorInt dialog(this, xdbf);
+            SettingInjectorInt dialog(this, xdbf, SET_INT32);
             dialog.exec();
-            this->close();
+            break;
+        }
+        case 3:
+        {
+            SettingInjectorInt dialog(this, xdbf, SET_INT64);
+            dialog.exec();
+            break;
+        }
+        case 4:
+        {
+            SettingInjectorInt dialog(this, xdbf, SET_DOUBLE);
+            dialog.exec();
+            break;
+        }
+        case 5:
+        {
+            SettingInjectorInt dialog(this, xdbf, SET_UNICODE);
+            dialog.exec();
+            break;
+        }
+        case 6:
+        {
+            SettingInjectorInt dialog(this, xdbf, SET_FLOAT);
+            dialog.exec();
             break;
         }
         case 9:
         {
-            this->setVisible(false);
             TitleInjectorDialog dialog(this, xdbf);
             dialog.exec();
-            this->close();
             break;
         }
     }
+
+    this->close();
 }

@@ -836,13 +836,6 @@ void XDBF::writeEntry(Title_Entry *entry)
     opened_file->write(entry->totalGamerscore);
     opened_file->write(entry->gamerscoreUnlocked);
     opened_file->write(*(unsigned long long*)&entry->unknown);
-    /*opened_file->write(entry->achievementsUnlockedOnlineCount);
-    opened_file->write(entry->avatarAwardsEarned);
-    opened_file->write(entry->avatarAwardCount);
-    opened_file->write(entry->maleAvatarAwardsEarned);
-    opened_file->write(entry->maleAvatarAwardCount);
-    opened_file->write(entry->femaleAvatarAwardsEarned);
-    opened_file->write(entry->femaleAvaterAwardCount); */
     opened_file->write(entry->flags);
     opened_file->write((unsigned int)entry->lastPlayed.dwHighDateTime);
     opened_file->write((unsigned int)entry->lastPlayed.dwLowDateTime);
@@ -856,26 +849,44 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
     switch (entry->type)
     {
         case SET_INT32:
-            // allocate enough memory for an int32 setting entry
-            data = new char[0x18];
-            // zero out the write buffer
-            memset(data, 0, 0x18);
-
-            // write the setting mete data, so the id and type
-            writeSettingMetaData(data, id, entry->type);
-
-            // copy the int32 data to the write buffer
-            SwapEndian((unsigned int*)&entry->i32_data);
-            memcpy(data + 0x10, &entry->i32_data, 4);
-            SwapEndian((unsigned int*)&entry->i32_data);
-
-            // inject the new entry
-            entry->entry = injectEntry_private(ET_SETTING, data, 0x18, id);
-
+            injectSettingEntry_private(&entry->i32_data, 4, entry, id);
             break;
-    }
+        case SET_INT64:
+            injectSettingEntry_private(&entry->i64_data, 8, entry, id);
+            break;
+        case SET_DOUBLE:
+            injectSettingEntry_private(&entry->double_data, 8, entry, id);
+            break;
+        case SET_FLOAT:
+            injectSettingEntry_private(&entry->float_data, 4, entry, id);
+            break;
+        case SET_UNICODE:
+            // allocate the perfect amount of memory for the entry
+            data = new char[entry->unicode_string.str_len_in_bytes + 24];
+            // zero the memory
+            memset(data, 0, entry->unicode_string.str_len_in_bytes + 24);
+            // write the entry meta data
+            writeSettingMetaData(data, id, 4);
 
-    delete[] data;
+            // write the string length (in bytes)
+            SwapEndian(&entry->unicode_string.str_len_in_bytes);
+            memcpy(data + 0x10, &entry->unicode_string.str_len_in_bytes, 4);
+            SwapEndian(&entry->unicode_string.str_len_in_bytes);
+
+            // create a new temporary string so that we can change it to big endian
+            wchar_t *tempString = new wchar_t[entry->unicode_string.str_len_in_bytes / sizeof(wchar_t)];
+            memcpy(tempString, entry->unicode_string.str->c_str(), entry->unicode_string.str_len_in_bytes);
+            SwapEndianUnicode(tempString, entry->unicode_string.str_len_in_bytes);
+
+            // copy the correct string into the write buffer
+            memcpy(data + 0x18, tempString, entry->unicode_string.str_len_in_bytes);
+
+            // write the entry
+            injectEntry_private(ET_SETTING, data, entry->unicode_string.str_len_in_bytes + 24, id);
+
+            // give that string back to memory
+            delete[] tempString;
+    }
 }
 
 void XDBF::writeSettingMetaData(char *buffer, unsigned long long id, unsigned char type)
@@ -905,4 +916,23 @@ void XDBF::swapAchievementEndianness(Achievement_Entry *entry)
     SwapEndian(&entry->gamerscore);
     SwapEndian(&entry->flags);
     SwapEndian((unsigned long long*)&entry->unlockedTime);
+}
+
+void XDBF::injectSettingEntry_private(void* value, int len, Setting_Entry *entry, unsigned long long id)
+{
+    // allocate enough memory for an integral/floating point setting entry
+    char *data = new char[0x18];
+    // zero out the write buffer
+    memset(data, 0, 0x18);
+
+    // write the setting meta data, so the id and type
+    writeSettingMetaData(data, id, entry->type);
+
+    // copy the data to the write buffer
+    SwapEndian(value, 1, len);
+    memcpy(data + 0x10, value, len);
+    SwapEndian(value, 1, len);
+
+    // inject the new entry
+    entry->entry = injectEntry_private(ET_SETTING, data, 0x18, id);
 }

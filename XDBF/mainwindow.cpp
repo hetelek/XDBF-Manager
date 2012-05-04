@@ -31,6 +31,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->tableWidget->setHorizontalHeaderLabels(columnHeaders);
 
     xdbf = NULL;
+
+    ui->tableWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->tableWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRemoveContextMenu(QPoint)));
 }
 
 MainWindow::~MainWindow()
@@ -108,47 +111,7 @@ void MainWindow::on_pushButton_clicked()
     if(ui->tableWidget->selectedItems().count() < 1)
         return;
 
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Directory"), desktop_location) + "\\";
 
-    if(dir == "\\")
-        return;
-
-    int c = ui->tableWidget->selectedItems().count() / ui->tableWidget->columnCount();
-    for(int i = 0; i < c; i++)
-    {
-        QTableWidgetItem* item = ui->tableWidget->selectedItems()[i];
-        Entry *e = item->data(ObjectRole).value<Entry*>();
-
-        FILE *f;
-
-        QString path = dir + "0x" + QString::number(e->identifier, 16).toUpper() + " - " + friendlyNames[e->type - 1];
-
-        if(QFileInfo(path).exists())
-        {
-            int adder = 2;
-            while(QFileInfo(path + "(" + QString::number(adder) + ")").exists())
-                adder++;
-
-            path += "(" + QString::number(adder) + ")";
-        }
-
-        QByteArray ba = path.toAscii();
-        char *path_c = ba.data();
-        f = fopen(path_c, "wb");
-
-        try
-        {
-            char *data = xdbf->extract_entry(e);
-            fwrite(data, e->length, sizeof(char), f);
-            fclose(f);
-        }
-        catch(char *exce)
-        {
-            QMessageBox::information(this, "Error Occurred", exce, QMessageBox::Ok);
-        }
-    }
-
-    QMessageBox::information(this, "Extraction Successful", "All selected files have been extracted successfully!", QMessageBox::Ok);
 }
 
 void MainWindow::on_actionClose_triggered()
@@ -298,12 +261,6 @@ void MainWindow::showDatetimeMessageBox(FILETIME time, QString message_header, Q
     QMessageBox::about(this, title, message_header + time_str);
 }
 
-void MainWindow::on_pushButton_2_clicked()
-{
-    NewEntryChooser entryChooser(this, xdbf);
-    entryChooser.exec();
-}
-
 void MainWindow::on_pushButton_3_clicked()
 {
     if(ui->tableWidget->selectedItems().count() < 1)
@@ -317,4 +274,82 @@ void MainWindow::on_pushButton_3_clicked()
 
         ui->tableWidget->removeRow(item->row());
     }
+}
+
+void MainWindow::on_actionAdd_New_Entry_triggered()
+{
+    NewEntryChooser entryChooser(this, xdbf);
+    entryChooser.exec();
+}
+
+void MainWindow::on_actionExtract_All_triggered()
+{
+    QString s = ui->tableWidget->itemAt(0, 4)->text();
+
+    QList<QTableWidgetItem*> items;
+    for (int i = 0; i < ui->tableWidget->rowCount(); i++)
+        for (int x = 0; x < ui->tableWidget->columnCount(); x++)
+            items.push_back(ui->tableWidget->itemAt(x, i));
+    extractFiles(items);
+}
+
+void MainWindow::extractFiles(QList<QTableWidgetItem*> items)
+{
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Directory"), desktop_location) + "\\";
+
+    if(dir == "\\")
+        return;
+
+    for(int i = 0; i < items.size() / 4; i++)
+    {
+        QTableWidgetItem* item = items[i];
+        Entry *e = item->data(ObjectRole).value<Entry*>();
+
+        FILE *f;
+
+        QString path = dir + "0x" + QString::number(e->identifier, 16).toUpper() + " - " + friendlyNames[e->type - 1];
+
+        if(QFileInfo(path).exists())
+        {
+            int adder = 2;
+            while(QFileInfo(path + "(" + QString::number(adder) + ")").exists())
+                adder++;
+
+            path += "(" + QString::number(adder) + ")";
+        }
+
+        QByteArray ba = path.toAscii();
+        char *path_c = ba.data();
+        f = fopen(path_c, "wb");
+
+        try
+        {
+            char *data = xdbf->extract_entry(e);
+            fwrite(data, e->length, sizeof(char), f);
+            fclose(f);
+        }
+        catch(char *exce)
+        {
+            QMessageBox::information(this, "Error Occurred", exce, QMessageBox::Ok);
+        }
+    }
+
+    QMessageBox::information(this, "Extraction Successful", "All selected files have been extracted successfully!", QMessageBox::Ok);
+}
+
+void MainWindow::showRemoveContextMenu(const QPoint &pos)
+{
+    if (ui->tableWidget->selectedItems().length() == 0)
+        return;
+
+    QPoint globalPos = ui->tableWidget->mapToGlobal(pos);
+
+    QMenu contextMenu;
+    QIcon icon;
+    icon.addPixmap(QPixmap::fromImage(QImage(":/images/extract.png")));
+    contextMenu.addAction(icon, "Extract Selected");
+
+    QAction *selectedItem = contextMenu.exec(globalPos);
+    if (selectedItem)
+        extractFiles(ui->tableWidget->selectedItems());
 }

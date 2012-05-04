@@ -82,6 +82,7 @@ private:
     void writeEntryTable();
     void writeFreeMemoryTable();
     void writeSettingMetaData(char *buffer, unsigned long long id, unsigned char type);
+    void injectSettingEntry_private(void *value, int len, Setting_Entry *entry, unsigned long long id);
 };
 
 bool compareFunction(Entry e1, Entry e2);

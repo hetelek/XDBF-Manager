@@ -216,17 +216,7 @@ void TitleInjectorDialog::replyFinished(QNetworkReply *aReply)
         ui->boxArtImg->setText("<i>Unable to download image.</i>");
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void TitleInjectorDialog::on_pushButton_3_clicked()
+{
+    close();
+}

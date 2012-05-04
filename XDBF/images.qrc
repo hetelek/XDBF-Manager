@@ -7,5 +7,6 @@
         <file>images/add.png</file>
         <file>images/continue.png</file>
         <file>images/open.png</file>
+        <file>images/extract.png</file>
     </qresource>
 </RCC>

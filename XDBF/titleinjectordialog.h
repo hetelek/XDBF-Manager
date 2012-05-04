@@ -26,6 +26,8 @@ private slots:
     void replyFinished(QNetworkReply* aReply);
     void on_pushButton_2_clicked();
 
+    void on_pushButton_3_clicked();
+
 private:
     Ui::TitleInjectorDialog *ui;
     bool hexNumbersOnly(QLineEdit *lineEdit);
