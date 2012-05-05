@@ -172,8 +172,8 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
             break;
 
         case SET_DATETIME:
-            //UINT64 fTime = opened_file->readUInt64();
-            //s_entry->time_stamp = *(FILETIME*)&fTime;
+            s_entry->time_stamp.dwHighDateTime = opened_file->readUInt32();
+            s_entry->time_stamp.dwLowDateTime = opened_file->readUInt32();
             break;
 
         case SET_NULL:
@@ -861,12 +861,13 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
             injectSettingEntry_private(&entry->float_data, 4, entry, id);
             break;
         case SET_UNICODE:
+        {
             // allocate the perfect amount of memory for the entry
             data = new char[entry->unicode_string.str_len_in_bytes + 24];
             // zero the memory
             memset(data, 0, entry->unicode_string.str_len_in_bytes + 24);
             // write the entry meta data
-            writeSettingMetaData(data, id, 4);
+            writeSettingMetaData(data, id, SET_UNICODE);
 
             // write the string length (in bytes)
             SwapEndian(&entry->unicode_string.str_len_in_bytes);
@@ -886,6 +887,30 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
 
             // give that string back to memory
             delete[] tempString;
+            break;
+        }
+        case SET_DATETIME:
+            // allocate the correct amount of memory for the entry
+            data = new char[0x18];
+            // zero the memory
+            memset(data, 0, 0x18);
+            // write the entry meta data
+            writeSettingMetaData(data, id, SET_DATETIME);
+
+            // swap the endian for writing
+            SwapEndian(&entry->time_stamp.dwHighDateTime);
+            SwapEndian(&entry->time_stamp.dwLowDateTime);
+
+            // copy the data time to the write buffer
+            memcpy(data + 0x10, &entry->time_stamp, 8);
+
+            // swap the endian back so the value isn't screwed up
+            SwapEndian(&entry->time_stamp.dwHighDateTime);
+            SwapEndian(&entry->time_stamp.dwLowDateTime);
+
+            // inject the entry
+            injectEntry_private(ET_SETTING, data, 0x18, id);
+            break;
     }
 }
 

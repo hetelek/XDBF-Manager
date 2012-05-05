@@ -33,8 +33,6 @@ public:
 private slots:
     void on_actionOpen_triggered();
 
-    void on_pushButton_clicked();
-
     void on_actionClose_triggered();
 
     void on_tableWidget_doubleClicked(const QModelIndex &index);

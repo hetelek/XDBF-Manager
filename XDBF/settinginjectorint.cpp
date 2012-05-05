@@ -7,7 +7,7 @@
 
 using std::string;
 
-SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type) : xdbf(xdbf), QDialog(parent), ui(new Ui::SettingInjectorInt), spinBox(NULL), dSpinBox(NULL), lineEdit(NULL), type(type)
+SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type) : xdbf(xdbf), QDialog(parent), ui(new Ui::SettingInjectorInt), spinBox(NULL), dSpinBox(NULL), lineEditP(NULL), type(type)
 {
     ui->setupUi(this);
 
@@ -47,7 +47,10 @@ SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type) :
     // add the setting id strings to the combo box
     for (int i = 0; i < 29; i++)
         if (xdbf->get_entry_by_id(knownIDs[i], ET_SETTING) == NULL)
+        {
             ui->comboBox->addItem(QString::fromStdString(Entry_ID_to_string(knownIDs[i])));
+            cmbxIDs.push_back(knownIDs[i]);
+        }
 
     switch (type)
     {
@@ -63,8 +66,8 @@ SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type) :
             break;
         case SET_INT64:
             ui->label->setText("<b>Int64 Value:</b>");
-            lineEdit = new QLineEdit(this);
-            ui->gridLayout->addWidget(lineEdit, 0, 1);
+            lineEditP = new QLineEdit(this);
+            ui->gridLayout->addWidget(lineEditP, 0, 1);
             this->setWindowTitle("Int64 Setting Entry Adder");
             break;
         case SET_DOUBLE:
@@ -87,9 +90,15 @@ SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type) :
             break;
         case SET_UNICODE:
             ui->label->setText("<b>Unicode String: </b>");
-            lineEdit = new QLineEdit(this);
-            ui->gridLayout->addWidget(lineEdit, 0, 1);
+            lineEditP = new QLineEdit(this);
+            ui->gridLayout->addWidget(lineEditP, 0, 1);
             this->setWindowTitle("String Setting Entry Adder");
+            break;
+        case SET_DATETIME:
+            ui->label->setText("<b>Date Time: </b>");
+            dte = new QDateTimeEdit(this);
+            ui->gridLayout->addWidget(dte, 0, 1);
+            this->setWindowTitle("Date Time Setting Entry Adder");
             break;
     }
 
@@ -103,8 +112,8 @@ SettingInjectorInt::~SettingInjectorInt()
         delete spinBox;
     if (dSpinBox != NULL)
         delete dSpinBox;
-    if (lineEdit != NULL)
-        delete lineEdit;
+    if (lineEditP != NULL)
+        delete lineEditP;
     delete ui;
 }
 
@@ -124,12 +133,12 @@ void SettingInjectorInt::on_pushButton_clicked()
             msgBoxText = "int32";
             break;
         case SET_INT64:
-            if (!isAllNumbers(lineEdit->text()))
+            if (!isAllNumbers(lineEditP->text()))
             {
                 QMessageBox::warning(this, "Invalid Characters", "Invalid characters in the value text box!");
                 return;
             }
-            entry.i64_data = lineEdit->text().toLongLong();
+            entry.i64_data = lineEditP->text().toLongLong();
             msgBoxText = "int64";
             break;
         case SET_DOUBLE:
@@ -141,14 +150,32 @@ void SettingInjectorInt::on_pushButton_clicked()
             msgBoxText = "float";
             break;
         case SET_UNICODE:
-            wstring *entryString = new wstring(lineEdit->text().toStdWString());
+        {
+            wstring *entryString = new wstring(lineEditP->text().toStdWString());
             entry.unicode_string.str = entryString;
             entry.unicode_string.str_len_in_bytes = (entry.unicode_string.str->length() + 1) * 2;
             msgBoxText = "unicode string";
             break;
+        }
+        case SET_DATETIME:
+            entry.time_stamp = time_t_to_FILETIME(dte->dateTime().toTime_t());
+            msgBoxText = "date time";
+            break;
     }
 
-    unsigned long long id = ui->comboBox->currentText().toLongLong();
+    unsigned long long id;
+    if (ui->comboBox->currentIndex() == 0)
+    {
+        // ensure that there are only number characters in the line edit
+        if (!isAllNumbers(ui->lineEdit->text()))
+        {
+            QMessageBox::warning(this, "Invalid Characters", "Invalid Characters in user defined entry ID!");
+            return;
+        }
+        id = ui->lineEdit->text().toLongLong();
+    }
+    else
+        id = cmbxIDs.at(ui->comboBox->currentIndex() - 1);
 
 
     // add the entry
@@ -166,4 +193,15 @@ bool SettingInjectorInt::isAllNumbers(QString s)
             return false;
 
     return true;
+}
+
+void SettingInjectorInt::on_comboBox_currentIndexChanged(int index)
+{
+     ui->lineEdit->setEnabled(index == 0);
+
+}
+
+void SettingInjectorInt::on_pushButton_2_clicked()
+{
+    close();
 }

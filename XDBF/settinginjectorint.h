@@ -6,6 +6,7 @@
 #include <QtGui/QSpinBox>
 #include <QtGui/QDoubleSpinBox>
 #include <QtGui/QLineEdit>
+#include <QtGui/QDateTimeEdit>
 
 namespace Ui {
 class SettingInjectorInt;
@@ -22,12 +23,18 @@ public:
 private slots:
     void on_pushButton_clicked();
 
+    void on_comboBox_currentIndexChanged(int index);
+
+    void on_pushButton_2_clicked();
+
 private:
     Ui::SettingInjectorInt *ui;
     QSpinBox *spinBox;
     QDoubleSpinBox *dSpinBox;
-    QLineEdit *lineEdit;
+    QLineEdit *lineEditP;
+    QDateTimeEdit *dte;
     unsigned long long *knownIDs;
+    vector<unsigned long long> cmbxIDs;
     bool isAllNumbers(QString s);
     char type;
     XDBF *xdbf;

@@ -64,6 +64,12 @@ void NewEntryChooser::on_pushButton_clicked()
             dialog.exec();
             break;
         }
+        case 8:
+        {
+            SettingInjectorInt dialog(this, xdbf, SET_DATETIME);
+            dialog.exec();
+            break;
+        }
         case 9:
         {
             TitleInjectorDialog dialog(this, xdbf);

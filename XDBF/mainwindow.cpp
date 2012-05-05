@@ -106,14 +106,6 @@ void MainWindow::clear_items()
         ui->tableWidget->removeRow(i);
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    if(ui->tableWidget->selectedItems().count() < 1)
-        return;
-
-
-}
-
 void MainWindow::on_actionClose_triggered()
 {
     if(xdbf == NULL)
