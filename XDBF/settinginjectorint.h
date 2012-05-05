@@ -17,7 +17,7 @@ class SettingInjectorInt : public QDialog
     Q_OBJECT
     
 public:
-    explicit SettingInjectorInt(QWidget *parent = 0, XDBF *xdbf = NULL, char type = 0);
+    explicit SettingInjectorInt(QWidget *parent = 0, XDBF *xdbf = NULL, char type = 0, Setting_Entry *entry = NULL);
     ~SettingInjectorInt();
     
 private slots:
@@ -33,6 +33,7 @@ private:
     QDoubleSpinBox *dSpinBox;
     QLineEdit *lineEditP;
     QDateTimeEdit *dte;
+    Setting_Entry *entry;
     unsigned long long *knownIDs;
     vector<unsigned long long> cmbxIDs;
     bool isAllNumbers(QString s);

@@ -56,6 +56,8 @@ public:
     void writeEntry(Entry *entry, Achievement_Entry *chiev);
     void writeEntry(Title_Entry *entry);
     void writeEntry(Avatar_Award_Entry *e);
+    void writeEntry(Setting_Entry* entry);
+    void writeSettingEntryPrivate(void *data, int len, Entry *e);
     void injectAchievementEntry(Achievement_Entry *entry, unsigned long long id = 0);
     void injectImageEntry(char *imageData, unsigned int len, unsigned long long id);
     void injectTitleEntry(Title_Entry *entry, unsigned long long id = 0);

@@ -4,6 +4,7 @@
 #include "avatarawarddialog.h"
 #include "newentrychooser.h"
 #include "titleinjectordialog.h"
+#include "settinginjectorint.h"
 
 Q_DECLARE_METATYPE(Entry*)
 
@@ -149,23 +150,16 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
         switch (se->type)
         {
             case SET_INT32:
-                showIntMessageBox(se->i32_data, message_header, title);
-                break;
             case SET_INT64:
-                showIntMessageBox(se->i64_data, message_header, title);
-                break;
             case SET_FLOAT:
-                showFloatMessageBox(se->float_data, message_header, title);
-                break;
             case SET_DOUBLE:
-                showFloatMessageBox(se->double_data, message_header, title);
-                break;
             case SET_DATETIME:
-                showDatetimeMessageBox(se->time_stamp, message_header, title);
-                break;
             case SET_UNICODE:
-                showStringMessageBox(se->unicode_string.str->c_str(), message_header, title);
+            {
+                SettingInjectorInt dialog(this, xdbf, se->type, se);
+                dialog.exec();
                 break;
+            }
             case SET_BINARY:
                 BinaryDialog bd(this, se);
                 bd.exec();

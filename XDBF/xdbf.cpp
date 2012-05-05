@@ -961,3 +961,39 @@ void XDBF::injectSettingEntry_private(void* value, int len, Setting_Entry *entry
     // inject the new entry
     entry->entry = injectEntry_private(ET_SETTING, data, 0x18, id);
 }
+
+void XDBF::writeEntry(Setting_Entry* entry)
+{
+    // still need to write the cases for SET_BINARY and SET_UNICODE
+    switch (entry->type)
+    {
+        case SET_INT32:
+        case SET_FLOAT:
+            writeSettingEntryPrivate(&entry->i32_data, 4, entry->entry);
+            break;
+        case SET_INT64:
+        case SET_DOUBLE:
+            writeSettingEntryPrivate(&entry->i64_data, 8, entry->entry);
+            break;
+        case SET_DATETIME:
+            // seek to the entry data position
+            opened_file->setPosition(entry->entry->address + 0x10);
+
+            // write the date time into the entry
+            opened_file->write((unsigned int)entry->time_stamp.dwHighDateTime);
+            opened_file->write((unsigned int)entry->time_stamp.dwLowDateTime);
+    }
+}
+
+void XDBF::writeSettingEntryPrivate(void *data, int len, Entry *e)
+{
+    // seek to the entry data position
+    opened_file->setPosition(e->address + 0x10);
+
+    // change the endian of the value for writing
+    SwapEndian(data, 1, len);
+    // write the data to the entry
+    opened_file->write(data, len);
+    // change the endian back to the original so it's not screwed up
+    SwapEndian(data, 1, len);
+}
