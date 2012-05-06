@@ -687,6 +687,9 @@ unsigned int XDBF::fmalloc(size_t dataLen)
 
 void XDBF::ffree(unsigned int address, size_t size)
 {
+    if (size <= 0)
+        return;
+
     FreeMemoryEntry entry = { getFakeOffset(address),  size };
     freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 1), entry);
 
@@ -982,6 +985,28 @@ void XDBF::writeEntry(Setting_Entry* entry)
             // write the date time into the entry
             opened_file->write((unsigned int)entry->time_stamp.dwHighDateTime);
             opened_file->write((unsigned int)entry->time_stamp.dwLowDateTime);
+        case SET_UNICODE:
+            // if the entry size is less than the previous size then we're good to go
+            if (entry->unicode_string.str_len_in_bytes <= (entry->entry->length - 0x18))
+            {
+                // seek to the position of the string length
+                opened_file->setPosition(entry->entry->address + 0x10);
+                // write the new string length
+                opened_file->write((unsigned int)entry->unicode_string.str_len_in_bytes);
+                // free the excess memory
+                ffree(entry->entry->address + 0x18 + entry->unicode_string.str_len_in_bytes, entry->entry->length - (0x18 + entry->unicode_string.str_len_in_bytes));
+            }
+            // if the string is longer than it was previously, then we need to allocate more memory
+            else
+            {
+                // free the old entry
+                ffree(entry->entry->address, entry->entry->length);
+                // allocate enough memory for the new entry
+                fmalloc(entry->unicode_string.str_len_in_bytes + 0x18);
+                // write the entry meta data
+                char temp[0x18];
+                writeSettingMetaData(temp, entry->entry->identifier, SET_UNICODE);
+            }
     }
 }
 
