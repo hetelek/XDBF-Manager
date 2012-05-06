@@ -32,7 +32,7 @@ XDBF::XDBF(const char* path)
         temp_entries[i].address = opened_file->readUInt32();
         temp_entries[i].length = opened_file->readUInt32();
 
-        temp_entries[i].address = get_offset(temp_entries[i].address, h);
+        temp_entries[i].address = get_offset(temp_entries[i].address);
         private_entries.push_back(temp_entries[i]);
     }
 
@@ -102,7 +102,7 @@ void XDBF::close()
     opened_file = NULL;
 }
 
-int XDBF::get_offset(unsigned int offset_specifier, Header* h)
+int XDBF::get_offset(unsigned int offset_specifier)
 {
     int entry_table_size = (h->entry_table_length * 18);
     int free_space_size = (h->free_memory_table_length * 8);
@@ -646,7 +646,7 @@ unsigned int XDBF::fmalloc(size_t dataLen)
     {
         // store the len and addr for later user, because we're gonna delete the entry
         // from the list
-        int addr = get_offset(freeMemTable.entries->at(indexWithClosestVal).offsetSpecifier, h);
+        int addr = get_offset(freeMemTable.entries->at(indexWithClosestVal).offsetSpecifier);
         int len = freeMemTable.entries->at(indexWithClosestVal).length;
 
         // erase the entry from the table that we're using

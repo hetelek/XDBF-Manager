@@ -5,6 +5,7 @@
 #include "newentrychooser.h"
 #include "titleinjectordialog.h"
 #include "settinginjectorint.h"
+#include "addressconverter.h"
 
 Q_DECLARE_METATYPE(Entry*)
 
@@ -338,4 +339,10 @@ void MainWindow::showRemoveContextMenu(const QPoint &pos)
     QAction *selectedItem = contextMenu.exec(globalPos);
     if (selectedItem)
         extractFiles(ui->tableWidget->selectedItems());
+}
+
+void MainWindow::on_actionAddress_Converter_triggered()
+{
+    AddressConverter converter(this, xdbf);
+    converter.exec();
 }

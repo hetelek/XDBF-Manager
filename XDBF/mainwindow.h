@@ -45,6 +45,8 @@ private slots:
 
     void showRemoveContextMenu(const QPoint& pos);
 
+    void on_actionAddress_Converter_triggered();
+
 private:
     Ui::MainWindow *ui;
     char *friendlyNames[6];

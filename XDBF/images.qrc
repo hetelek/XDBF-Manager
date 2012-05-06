@@ -8,5 +8,6 @@
         <file>images/continue.png</file>
         <file>images/open.png</file>
         <file>images/extract.png</file>
+        <file>images/convert.png</file>
     </qresource>
 </RCC>

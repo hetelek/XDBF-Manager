@@ -67,6 +67,8 @@ public:
     void removeSyncEntry(unsigned long long identifier, Sync_List *list);
     unsigned int fmalloc(size_t dataLen);
     void ffree(unsigned int address, size_t size);
+    int get_offset(unsigned int offset_specifier);
+    int getFakeOffset(unsigned int realAddress);
 
     static std::string FILETIME_to_string(FILETIME *pft);
 
@@ -75,8 +77,6 @@ private:
     FreeMemoryTable freeMemTable;
     FileIO *opened_file;
     vector<Entry> private_entries;
-    int get_offset(unsigned int offset_specifier, Header *h);
-    int getFakeOffset(unsigned int realAddress);
     bool reverse;
     Entry* injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
     void swapAchievementEndianness(Achievement_Entry *entry);

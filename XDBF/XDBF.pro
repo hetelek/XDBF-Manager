@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     FileIO.cpp \
     newentrychooser.cpp \
     titleinjectordialog.cpp \
-    settinginjectorint.cpp
+    settinginjectorint.cpp \
+    addressconverter.cpp
 
 HEADERS  += mainwindow.h \
     xdbf.h \
@@ -43,7 +44,8 @@ HEADERS  += mainwindow.h \
     FileIO.h \
     newentrychooser.h \
     titleinjectordialog.h \
-    settinginjectorint.h
+    settinginjectorint.h \
+    addressconverter.h
 
 FORMS    += mainwindow.ui \
     imagedialog.ui \
@@ -54,7 +56,8 @@ FORMS    += mainwindow.ui \
     achievementinjectordialog.ui \
     newentrychooser.ui \
     titleinjectordialog.ui \
-    settinginjectorint.ui
+    settinginjectorint.ui \
+    addressconverter.ui
 
 RESOURCES += \
     images.qrc

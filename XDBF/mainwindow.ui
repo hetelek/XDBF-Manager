@@ -71,8 +71,15 @@
     <addaction name="actionAdd_New_Entry"/>
     <addaction name="actionExtract_All"/>
    </widget>
+   <widget class="QMenu" name="menuTools_2">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionAddress_Converter"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
+   <addaction name="menuTools_2"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -104,6 +111,15 @@
    </property>
    <property name="text">
     <string>Extract All</string>
+   </property>
+  </action>
+  <action name="actionAddress_Converter">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/convert.png</normaloff>:/images/convert.png</iconset>
+   </property>
+   <property name="text">
+    <string>Address Converter</string>
    </property>
   </action>
  </widget>
