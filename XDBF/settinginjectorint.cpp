@@ -284,6 +284,10 @@ void SettingInjectorInt::on_pushButton_clicked()
             case SET_DATETIME:
                 entry->time_stamp = time_t_to_FILETIME(dte->dateTime().toTime_t());
                 break;
+            case SET_UNICODE:
+                wstring *temp = new wstring(lineEditP->text().toStdWString());
+                entry->unicode_string.str = temp;
+                entry->unicode_string.str_len_in_bytes = (lineEditP->text().length() + 1) * 2;
         }
 
         xdbf->writeEntry(entry);

@@ -967,7 +967,7 @@ void XDBF::injectSettingEntry_private(void* value, int len, Setting_Entry *entry
 
 void XDBF::writeEntry(Setting_Entry* entry)
 {
-    // still need to write the cases for SET_BINARY and SET_UNICODE
+    // still need to write the cases for SET_BINARY
     switch (entry->type)
     {
         case SET_INT32:
@@ -993,6 +993,9 @@ void XDBF::writeEntry(Setting_Entry* entry)
                 opened_file->setPosition(entry->entry->address + 0x10);
                 // write the new string length
                 opened_file->write((unsigned int)entry->unicode_string.str_len_in_bytes);
+                // write the string
+                opened_file->setPosition(entry->entry->address + 0x18);
+                opened_file->write(*entry->unicode_string.str);
                 // free the excess memory
                 ffree(entry->entry->address + 0x18 + entry->unicode_string.str_len_in_bytes, entry->entry->length - (0x18 + entry->unicode_string.str_len_in_bytes));
             }
@@ -1002,10 +1005,18 @@ void XDBF::writeEntry(Setting_Entry* entry)
                 // free the old entry
                 ffree(entry->entry->address, entry->entry->length);
                 // allocate enough memory for the new entry
-                fmalloc(entry->unicode_string.str_len_in_bytes + 0x18);
+                int pos = fmalloc(entry->unicode_string.str_len_in_bytes + 0x18);
+                // update the entry's position
+                entry->entry->address = pos;
+                // re-write the entry table
+                writeEntryTable();
                 // write the entry meta data
                 char temp[0x18];
                 writeSettingMetaData(temp, entry->entry->identifier, SET_UNICODE);
+                opened_file->setPosition(pos);
+                opened_file->write(temp, 0x18);
+                // write the string data
+                opened_file->write(*entry->unicode_string.str);
             }
     }
 }
