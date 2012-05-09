@@ -88,7 +88,10 @@ void AchievementInjectorDialog::on_pushButton_clicked()
         ui->chievImg->pixmap()->save(&buffer, "PNG");
 
         // set the imageID for the achievement to be the same as the id of the image we inject
-        imageID = xdbf->getNextId(ET_IMAGE);
+        // we need it to be the next achievement ID because each achievement corresponds to an image
+        // so just because there isn't an image for some achievement doesn't mean we can use that id because
+        // that image most likely just hasn't been downloaded yet
+        imageID = xdbf->getNextId(ET_ACHIEVEMENT);
         entry.imageID = imageID;
 
         // inject the new image entry

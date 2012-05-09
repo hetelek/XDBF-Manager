@@ -47,6 +47,8 @@ private slots:
 
     void on_actionAddress_Converter_triggered();
 
+    void on_actionClean_GPD_triggered();
+
 private:
     Ui::MainWindow *ui;
     char *friendlyNames[6];

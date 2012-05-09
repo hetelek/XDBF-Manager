@@ -76,6 +76,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionAddress_Converter"/>
+    <addaction name="actionClean_GPD"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -120,6 +121,15 @@
    </property>
    <property name="text">
     <string>Address Converter</string>
+   </property>
+  </action>
+  <action name="actionClean_GPD">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/clean.png</normaloff>:/images/clean.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clean GPD</string>
    </property>
   </action>
  </widget>

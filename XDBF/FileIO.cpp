@@ -4,6 +4,15 @@ FileIO::FileIO(string path)
 {
     io = new fstream(path.c_str(), fstream::in | fstream::out | fstream::binary);
 
+    if(!io->is_open())
+    {
+        io->close();
+        io->clear();
+        io = new fstream(path.c_str(), fstream::out);
+        io->close();
+        io = new fstream(path.c_str(), fstream::in | fstream::out | fstream::binary);
+    }
+
     // check for little endian architecture
     checkEndian();
 }

@@ -9,5 +9,6 @@
         <file>images/open.png</file>
         <file>images/extract.png</file>
         <file>images/convert.png</file>
+        <file>images/clean.png</file>
     </qresource>
 </RCC>

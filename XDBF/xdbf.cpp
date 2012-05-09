@@ -1,7 +1,7 @@
 #include "xdbf.h";
 #include <algorithm>
 
-XDBF::XDBF(const char* path)
+XDBF::XDBF(string path) : filePath(path)
 {
     opened_file = new FileIO(path);
 
@@ -428,7 +428,7 @@ void XDBF::write_sync_list(Sync_List *sl)
 
     // update the entry size
     sl->list_entry->length = newSize;
-    writeEntryTable();
+    writeEntryTable(opened_file);
 }
 
 Sync_Data XDBF::get_sync_data(int et_type, unsigned long long identifier)
@@ -559,7 +559,7 @@ Entry* XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned in
     h->entry_count++;
     sort(private_entries.begin(), private_entries.end(), &compareFunction);
 
-    writeEntryTable();
+    writeEntryTable(opened_file);
 
     return get_entry_by_id(id, type);
 }
@@ -696,16 +696,16 @@ void XDBF::ffree(unsigned int address, size_t size)
     writeFreeMemoryTable();
 }
 
-void XDBF::writeEntryTable()
+void XDBF::writeEntryTable(FileIO *io)
 {
     // re-write entry table
     for (int i = 0; i < h->entry_count; i++)
     {
-        opened_file->setPosition((i * 0x12) + 0x18);
-        opened_file->write(private_entries[i].type);
-        opened_file->write(private_entries[i].identifier);
-        opened_file->write(getFakeOffset(private_entries[i].address));
-        opened_file->write(private_entries[i].length);
+        io->setPosition((i * 0x12) + 0x18);
+        io->write(private_entries[i].type);
+        io->write(private_entries[i].identifier);
+        io->write(getFakeOffset(private_entries[i].address));
+        io->write(private_entries[i].length);
     }
 }
 
@@ -735,7 +735,7 @@ void XDBF::removeEntry(Entry *entry)
         }
 
     // re-write the entry table
-    writeEntryTable();
+    writeEntryTable(opened_file);
 
     // update free memory table length
     h->free_memory_table_entry_count++;
@@ -1009,7 +1009,7 @@ void XDBF::writeEntry(Setting_Entry* entry)
                 // update the entry's position
                 entry->entry->address = pos;
                 // re-write the entry table
-                writeEntryTable();
+                writeEntryTable(opened_file);
                 // write the entry meta data
                 char temp[0x18];
                 writeSettingMetaData(temp, entry->entry->identifier, SET_UNICODE);
@@ -1032,4 +1032,72 @@ void XDBF::writeSettingEntryPrivate(void *data, int len, Entry *e)
     opened_file->write(data, len);
     // change the endian back to the original so it's not screwed up
     SwapEndian(data, 1, len);
+}
+
+void XDBF::cleanGPD()
+{
+    // create a new fileIo for writing the new gpd
+    FileIO *newFile = new FileIO(filePath.append(".4253efd018451c05326e15f1e1bcf402"));
+
+    // set the free mem table length to 0, because we're overwriting all the unused memory
+    h->free_memory_table_length = 0;
+
+    // write the header to the file
+    newFile->write(h->magic);
+    newFile->write(h->version);
+    newFile->write(h->entry_table_length);
+    newFile->write(h->entry_count);
+    newFile->write(h->free_memory_table_length);
+    newFile->write(h->free_memory_table_entry_count);
+
+    // length of the entry table and free mem table in bytes
+    int paddingLen = get_offset(0) - 0x18;
+
+    // null out that part of the file
+    char *nullData = new char[paddingLen];
+    memset(nullData, 0, paddingLen);
+    newFile->write(nullData, paddingLen);
+    delete[] nullData;
+
+    // write all of the entries
+    for (int i = 0; i < private_entries.size(); i++)
+    {
+        // allocate some memory to hold the entry in
+        char *temp = new char[private_entries.at(i).length];
+
+        // read the entry
+        opened_file->setPosition(private_entries.at(i).address);
+        opened_file->read(temp, private_entries.at(i).length);
+
+        // update the entry's address
+        private_entries.at(i).address = newFile->getPosition();
+
+        // write the new entry
+        newFile->write(temp, private_entries.at(i).length);
+
+        // deallocate the memory
+        delete[] temp;
+    }
+
+    // write all the entry table with the updated addresses
+    writeEntryTable(newFile);
+
+    // the file to read/write from now will be the one we just created
+    opened_file->close();
+    delete opened_file;
+    newFile->close();
+    delete newFile;
+
+    string s = filePath.substr(0, filePath.length() - 33);
+
+    // delete the old file
+    if (remove(s.c_str()) != 0)
+        throw "Error deleting file.";
+
+    // rename the new file to the original file's name
+    if (rename(filePath.c_str(), s.c_str()) != 0)
+        throw "Error renaming file.";
+
+    filePath = s;
+    opened_file = new FileIO(filePath);
 }

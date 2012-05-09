@@ -35,7 +35,7 @@ using std::vector;
 class XDBF
 {
 public:
-    XDBF(const char *path);
+    XDBF(string path);
     ~XDBF();
     Entry* get_entries();
     char* extract_entry(Entry *entry);
@@ -69,6 +69,7 @@ public:
     void ffree(unsigned int address, size_t size);
     int get_offset(unsigned int offset_specifier);
     int getFakeOffset(unsigned int realAddress);
+    void cleanGPD();
 
     static std::string FILETIME_to_string(FILETIME *pft);
 
@@ -78,10 +79,11 @@ private:
     FileIO *opened_file;
     vector<Entry> private_entries;
     bool reverse;
+    string filePath;
     Entry* injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
     void swapAchievementEndianness(Achievement_Entry *entry);
     void swapTitleEndianness(Title_Entry *entry);
-    void writeEntryTable();
+    void writeEntryTable(FileIO *io);
     void writeFreeMemoryTable();
     void writeSettingMetaData(char *buffer, unsigned long long id, unsigned char type);
     void injectSettingEntry_private(void *value, int len, Setting_Entry *entry, unsigned long long id);

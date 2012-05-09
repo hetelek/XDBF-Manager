@@ -346,3 +346,12 @@ void MainWindow::on_actionAddress_Converter_triggered()
     AddressConverter converter(this, xdbf);
     converter.exec();
 }
+
+void MainWindow::on_actionClean_GPD_triggered()
+{
+    if (QMessageBox::question(this, "Continue?", "Cleaning the GPD will remove all of the unused memory from the file, making it smaller. Would you like to continue?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+    {
+        xdbf->cleanGPD();
+        QMessageBox::information(this, "Success", "Successfully cleaned the GPD.");
+    }
+}
