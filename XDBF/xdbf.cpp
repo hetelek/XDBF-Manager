@@ -24,16 +24,17 @@ XDBF::XDBF(string path) : filePath(path)
         throw "Invalid file. (MAGIC)";
     }
 
-    Entry *temp_entries = new Entry[h->entry_count];
+    private_entries = new vector<Entry>();
     for(unsigned int i = 0; i < h->entry_count; i++)
     {
-        temp_entries[i].type = opened_file->readUInt16();
-        temp_entries[i].identifier = opened_file->readUInt64();
-        temp_entries[i].address = opened_file->readUInt32();
-        temp_entries[i].length = opened_file->readUInt32();
+        Entry temp;
+        temp.type = opened_file->readUInt16();
+        temp.identifier = opened_file->readUInt64();
+        temp.address = opened_file->readUInt32();
+        temp.length = opened_file->readUInt32();
 
-        temp_entries[i].address = get_offset(temp_entries[i].address);
-        private_entries.push_back(temp_entries[i]);
+        temp.address = get_offset(temp.address);
+        private_entries->push_back(temp);
     }
 
     freeMemTable.entryCount = h->free_memory_table_entry_count;
@@ -50,8 +51,6 @@ XDBF::XDBF(string path) : filePath(path)
         entry.length = opened_file->readUInt32();
         freeMemTable.entries->push_back(entry);
     }
-
-    delete[] temp_entries;
 }
 
 XDBF::~XDBF()
@@ -85,7 +84,9 @@ char* XDBF::extract_entry(Entry *entry)
 
 Entry* XDBF::get_entries()
 {
-    return &private_entries.at(0);
+    if (private_entries->size() == 0)
+        return NULL;
+    return &private_entries->at(0);
 }
 
 Header* XDBF::get_header()
@@ -533,7 +534,7 @@ Entry* XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned in
     // update sync list stuffs
     // string/image entries don't have sync lists
 
-    if (newEntry.type != ET_STRING && newEntry.type != ET_IMAGE && newEntry.type <= 6)
+    if (newEntry.type != ET_STRING && newEntry.type != ET_IMAGE && newEntry.type <= 6 && !(id == SYNC_LIST || id == SYNC_DATA))
     {
         Sync_Entry entry;
         entry.identifier = id;
@@ -545,6 +546,7 @@ Entry* XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned in
     }
 
     // update entry count
+    h->entry_count++;
     opened_file->setPosition(0xC);
     opened_file->write(h->entry_count);
 
@@ -555,9 +557,8 @@ Entry* XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned in
     opened_file->write(entryData, dataLen);
 
     // add the new entry to the table
-    private_entries.push_back(newEntry);
-    h->entry_count++;
-    sort(private_entries.begin(), private_entries.end(), &compareFunction);
+    private_entries->push_back(newEntry);
+    sort(private_entries->begin(), private_entries->end(), &compareFunction);
 
     writeEntryTable(opened_file);
 
@@ -595,8 +596,8 @@ void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long i
     SwapEndianUnicode(unlockedDescCpy, unlockedDescLen);
 
     memcpy(&data[0x1C], nameCpy, nameLen);
-    memcpy(&data[0x1C + nameLen], lockedDescCpy, lockedDescLen);
-    memcpy(&data[0x1C + nameLen + lockedDescLen], unlockedDescCpy, unlockedDescLen);
+    memcpy(&data[0x1C + nameLen], unlockedDescCpy, unlockedDescLen);
+    memcpy(&data[0x1C + nameLen + unlockedDescLen], lockedDescCpy, lockedDescLen);
 
     injectEntry_private(ET_ACHIEVEMENT, data, 0x1C + nameLen + lockedDescLen + unlockedDescLen, id);
 }
@@ -608,21 +609,26 @@ void XDBF::injectImageEntry(char *imageData, unsigned int len, unsigned long lon
 
 unsigned long long XDBF::getNextId(unsigned short type)
 {
-    unsigned long long maxId = private_entries[0].identifier;
-    for (int i = 1; i < private_entries.size(); i++)
+    unsigned long long maxId = 0;
+    for (int i = 0; i < private_entries->size(); i++)
     {
-        if ((maxId < private_entries[i].identifier) && (private_entries[i].type == type) && (private_entries[i].identifier != SYNC_LIST && private_entries[i].identifier != SYNC_DATA && private_entries[i].identifier != TITLE_INFORMATION))
-            maxId = private_entries[i].identifier;
+        if ((maxId < private_entries->at(i).identifier) && private_entries->at(i).type == type && !(private_entries->at(i).identifier == SYNC_LIST || private_entries->at(i).identifier == SYNC_DATA || private_entries->at(i).identifier == TITLE_INFORMATION))
+            maxId = private_entries->at(i).identifier;
     }
     return maxId + 1;
 }
 
 unsigned int XDBF::fmalloc(size_t dataLen)
 {
+    int indexWithClosestVal = -1;
+
+    // if the entry count is 0, then we need to skip the free mem table check
+    if (freeMemTable.entryCount == 0)
+        goto skipFreeMemCheck;
+
     // get the index of the entry whose length is closest in size
     // to the requested amount of memory
-    int indexWithClosestVal = -1;
-    for(int i = 0; i < freeMemTable.entryCount - 1; i++)
+    for(unsigned int i = 0; i < freeMemTable.entryCount - 1; i++)
     {
         if(freeMemTable.entries->at(i).length == dataLen)
         {
@@ -640,6 +646,8 @@ unsigned int XDBF::fmalloc(size_t dataLen)
             }
         }
     }
+
+    skipFreeMemCheck:
 
     // if memory was found in the free entry table
     if (indexWithClosestVal != -1)
@@ -702,10 +710,10 @@ void XDBF::writeEntryTable(FileIO *io)
     for (int i = 0; i < h->entry_count; i++)
     {
         io->setPosition((i * 0x12) + 0x18);
-        io->write(private_entries[i].type);
-        io->write(private_entries[i].identifier);
-        io->write(getFakeOffset(private_entries[i].address));
-        io->write(private_entries[i].length);
+        io->write(private_entries->at(i).type);
+        io->write(private_entries->at(i).identifier);
+        io->write(getFakeOffset(private_entries->at(i).address));
+        io->write(private_entries->at(i).length);
     }
 }
 
@@ -727,10 +735,10 @@ void XDBF::removeEntry(Entry *entry)
     opened_file->write(h->entry_count);
 
     // remove entry from table
-    for (int i = 0; i < private_entries.size(); i++)
-        if (private_entries.at(i).identifier == temp.identifier && private_entries.at(i).type == temp.type)
+    for (int i = 0; i < private_entries->size(); i++)
+        if (private_entries->at(i).identifier == temp.identifier && private_entries->at(i).type == temp.type)
         {
-            private_entries.erase(private_entries.begin() + i);
+            private_entries->erase(private_entries->begin() + i);
             break;
         }
 
@@ -1039,8 +1047,8 @@ void XDBF::cleanGPD()
     // create a new fileIo for writing the new gpd
     FileIO *newFile = new FileIO(filePath.append(".4253efd018451c05326e15f1e1bcf402"));
 
-    // set the free mem table length to 0, because we're overwriting all the unused memory
-    h->free_memory_table_length = 0;
+    // set the free mem table count to 0, because we're overwriting all the unused memory
+    h->free_memory_table_entry_count = 0;
 
     // write the header to the file
     newFile->write(h->magic);
@@ -1060,20 +1068,20 @@ void XDBF::cleanGPD()
     delete[] nullData;
 
     // write all of the entries
-    for (int i = 0; i < private_entries.size(); i++)
+    for (int i = 0; i < private_entries->size(); i++)
     {
         // allocate some memory to hold the entry in
-        char *temp = new char[private_entries.at(i).length];
+        char *temp = new char[private_entries->at(i).length];
 
         // read the entry
-        opened_file->setPosition(private_entries.at(i).address);
-        opened_file->read(temp, private_entries.at(i).length);
+        opened_file->setPosition(private_entries->at(i).address);
+        opened_file->read(temp, private_entries->at(i).length);
 
         // update the entry's address
-        private_entries.at(i).address = newFile->getPosition();
+        private_entries->at(i).address = newFile->getPosition();
 
         // write the new entry
-        newFile->write(temp, private_entries.at(i).length);
+        newFile->write(temp, private_entries->at(i).length);
 
         // deallocate the memory
         delete[] temp;
@@ -1100,4 +1108,47 @@ void XDBF::cleanGPD()
 
     filePath = s;
     opened_file = new FileIO(filePath);
+}
+
+
+XDBF* XDBFcreate(string filePath)
+{
+    FileIO newFile(filePath);
+
+    // write the header of the new gpd
+    newFile.write("XDBF");
+    newFile.write((unsigned int)0x10000);
+    newFile.write((unsigned int)0x200);
+    newFile.write((unsigned long long)0x200);
+    newFile.write((unsigned int)0);
+
+    // create a buffer to hold the crap to write
+    char zeroBuff[0x340];
+    memset(zeroBuff, 0, 0x340);
+
+    // write the entry and memory table, since the file is new all the entries will be null
+    for (int i = 0; i < 16; i++)
+        newFile.write(zeroBuff, 0x340);
+
+    // close the new file
+    newFile.close();
+
+    // open the new file as an XDBF file
+    XDBF *toReturn = new XDBF(filePath);
+
+    // create a new sync data entry
+    char syncData[0x18] = {0};
+    syncData[7] = 1;
+
+    // inject achievement sync data
+    toReturn->injectEntry_private(ET_ACHIEVEMENT, syncData, 0x18, SYNC_DATA);
+    // inject new achievement sync list
+    toReturn->injectEntry_private(ET_ACHIEVEMENT, syncData, 0, SYNC_LIST);
+
+    // inject setting sync data
+    toReturn->injectEntry_private(ET_SETTING, syncData, 0x18, SYNC_DATA);
+    // inject new setting sync list
+    toReturn->injectEntry_private(ET_SETTING, syncData, 0, SYNC_LIST);
+
+    return toReturn;
 }

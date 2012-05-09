@@ -64,6 +64,8 @@ void MainWindow::on_actionOpen_triggered()
     {
         xdbf = new XDBF(name);
         Entry *entries = xdbf->get_entries();
+        if (entries == NULL)
+            return;
         Header *header = xdbf->get_header();
 
         clear_items();
@@ -80,7 +82,7 @@ void MainWindow::on_actionOpen_triggered()
             ui->tableWidget->setItem(i, 2, new QTableWidgetItem("0x" + QString::number(entries[i].address, 16).toUpper()));
 
             QString setting_entry_name = "";
-            if(entries[i].type == ET_SETTING)
+            if(entries[i].type == ET_SETTING && entries[i].identifier != SYNC_LIST && entries[i].identifier != SYNC_DATA)
             {
                 Setting_Entry *entry = xdbf->get_setting_entry(&entries[i]);
                 setting_entry_name = " - " + QString::fromStdString(xdbf->get_setting_entry_name(entry));
@@ -354,4 +356,12 @@ void MainWindow::on_actionClean_GPD_triggered()
         xdbf->cleanGPD();
         QMessageBox::information(this, "Success", "Successfully cleaned the GPD.");
     }
+}
+
+void MainWindow::on_actionNew_triggered()
+{
+    QString filePath = QFileDialog::getSaveFileName(this, tr("Where should the new GPD be created?"), desktop_location);
+    if (filePath == "")
+        return;
+    xdbf = XDBFcreate(filePath.toStdString());
 }

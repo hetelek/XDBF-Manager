@@ -49,6 +49,8 @@ private slots:
 
     void on_actionClean_GPD_triggered();
 
+    void on_actionNew_triggered();
+
 private:
     Ui::MainWindow *ui;
     char *friendlyNames[6];

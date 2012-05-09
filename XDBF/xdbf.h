@@ -72,12 +72,13 @@ public:
     void cleanGPD();
 
     static std::string FILETIME_to_string(FILETIME *pft);
+    friend XDBF* XDBFcreate(string filePath);
 
 private:
     Header h[1];
     FreeMemoryTable freeMemTable;
     FileIO *opened_file;
-    vector<Entry> private_entries;
+    vector<Entry> *private_entries;
     bool reverse;
     string filePath;
     Entry* injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);
