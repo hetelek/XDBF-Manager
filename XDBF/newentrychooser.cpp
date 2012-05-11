@@ -3,6 +3,7 @@
 #include "achievementinjectordialog.h"
 #include "titleinjectordialog.h"
 #include "settinginjectorint.h"
+#include "imageinjectordialog.h"
 
 NewEntryChooser::NewEntryChooser(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::NewEntryChooser), xdbf(xdbf)
 {
@@ -31,6 +32,12 @@ void NewEntryChooser::on_pushButton_clicked()
         case 0:
         {
             AchievementInjectorDialog dialog(this, xdbf);
+            dialog.exec();
+            break;
+        }
+        case 1:
+        {
+            ImageInjectorDialog dialog(this, xdbf);
             dialog.exec();
             break;
         }

@@ -30,7 +30,8 @@ SOURCES += main.cpp\
     newentrychooser.cpp \
     titleinjectordialog.cpp \
     settinginjectorint.cpp \
-    addressconverter.cpp
+    addressconverter.cpp \
+    imageinjectordialog.cpp
 
 HEADERS  += mainwindow.h \
     xdbf.h \
@@ -45,7 +46,8 @@ HEADERS  += mainwindow.h \
     newentrychooser.h \
     titleinjectordialog.h \
     settinginjectorint.h \
-    addressconverter.h
+    addressconverter.h \
+    imageinjectordialog.h
 
 FORMS    += mainwindow.ui \
     imagedialog.ui \
@@ -57,7 +59,8 @@ FORMS    += mainwindow.ui \
     newentrychooser.ui \
     titleinjectordialog.ui \
     settinginjectorint.ui \
-    addressconverter.ui
+    addressconverter.ui \
+    imageinjectordialog.ui
 
 RESOURCES += \
     images.qrc
