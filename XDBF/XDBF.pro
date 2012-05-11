@@ -31,7 +31,9 @@ SOURCES += main.cpp\
     titleinjectordialog.cpp \
     settinginjectorint.cpp \
     addressconverter.cpp \
-    imageinjectordialog.cpp
+    imageinjectordialog.cpp \
+    newgpddialog.cpp \
+    achievementgpd.cpp
 
 HEADERS  += mainwindow.h \
     xdbf.h \
@@ -47,7 +49,9 @@ HEADERS  += mainwindow.h \
     titleinjectordialog.h \
     settinginjectorint.h \
     addressconverter.h \
-    imageinjectordialog.h
+    imageinjectordialog.h \
+    newgpddialog.h \
+    achievementgpd.h
 
 FORMS    += mainwindow.ui \
     imagedialog.ui \
@@ -60,7 +64,9 @@ FORMS    += mainwindow.ui \
     titleinjectordialog.ui \
     settinginjectorint.ui \
     addressconverter.ui \
-    imageinjectordialog.ui
+    imageinjectordialog.ui \
+    newgpddialog.ui \
+    achievementgpd.ui
 
 RESOURCES += \
     images.qrc

@@ -62,6 +62,7 @@ public:
     void injectImageEntry(char *imageData, unsigned int len, unsigned long long id);
     void injectTitleEntry(Title_Entry *entry, unsigned long long id = 0);
     void injectSettingEntry(Setting_Entry *entry, unsigned long long id = 0);
+    void injectStringEntry(wstring wstr, unsigned long long id = 0);
     unsigned long long getNextId(unsigned short type);
     void removeEntry(Entry *entry);
     void removeSyncEntry(unsigned long long identifier, Sync_List *list);
@@ -72,7 +73,8 @@ public:
     void cleanGPD();
 
     static std::string FILETIME_to_string(FILETIME *pft);
-    friend XDBF* XDBFcreate(string filePath);
+    friend XDBF* XDBFcreate(string filePath, GPD_Type type, char *imageData = NULL, size_t imageDataLen = 0, wstring *gameName = NULL);
+    friend void injectSyncStuff(XDBF *x, int type);
 
 private:
     Header h[1];

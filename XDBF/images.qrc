@@ -10,5 +10,6 @@
         <file>images/extract.png</file>
         <file>images/convert.png</file>
         <file>images/clean.png</file>
+        <file>images/default image.png</file>
     </qresource>
 </RCC>

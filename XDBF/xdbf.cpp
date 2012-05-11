@@ -1110,8 +1110,31 @@ void XDBF::cleanGPD()
     opened_file = new FileIO(filePath);
 }
 
+void XDBF::injectStringEntry(wstring wstr, unsigned long long id)
+{
+    // if no id was provided, then we need to get the next available one
+    if (id == 0)
+        id = getNextId(ET_STRING);
 
-XDBF* XDBFcreate(string filePath)
+    // create a character array to hold the data to write, we need to
+    // make a copy so that we can reverse the endian of the wstring
+    wchar_t *dataToWrite = new wchar_t[wstr.length() + 1];
+
+    // copy the string to the temp location
+    memcpy(dataToWrite, &wstr.at(0), WSTRING_BYTES(wstr.length()));
+
+    // change the endian
+    SwapEndianUnicode(dataToWrite, WSTRING_BYTES(wstr.length()));
+
+    // inject the new string entry
+    injectEntry_private(ET_STRING, (char*)dataToWrite, WSTRING_BYTES(wstr.length()), id);
+
+    // give the memory back
+    delete[] dataToWrite;
+}
+
+
+XDBF* XDBFcreate(string filePath, GPD_Type type, char *imageData, size_t imageDataLen, wstring *gameName)
 {
     FileIO newFile(filePath);
 
@@ -1136,19 +1159,61 @@ XDBF* XDBFcreate(string filePath)
     // open the new file as an XDBF file
     XDBF *toReturn = new XDBF(filePath);
 
+    switch (type)
+    {
+        case Achievement:
+            // inject the sync information for all types of possible entries
+            injectSyncStuff(toReturn, ET_ACHIEVEMENT);
+            injectSyncStuff(toReturn, ET_SETTING);
+
+            if (imageData == NULL)
+                throw "Image must be provided for game GPD!";
+            if (gameName == NULL)
+                throw "Gamge name must be provided for game GPD!";
+
+            // inject the game thumbnail
+            toReturn->injectImageEntry(imageData, imageDataLen, TITLE_INFORMATION);
+
+            // inject the title name
+            toReturn->injectStringEntry(*gameName, TITLE_INFORMATION);
+            break;
+
+        case Dashboard:
+            // inject the sync information for all types of possible entries
+            injectSyncStuff(toReturn, ET_ACHIEVEMENT);
+            injectSyncStuff(toReturn, ET_SETTING);
+            injectSyncStuff(toReturn, ET_TITLE);
+
+            if (imageData == NULL)
+                throw "Image must be provided for dashboard GPD!";
+
+            // inject the game thumbnail
+            toReturn->injectImageEntry(imageData, imageDataLen, TITLE_INFORMATION);
+
+            // inject the title name
+            toReturn->injectStringEntry(L"Xbox 360 Dashboard", TITLE_INFORMATION);
+
+            break;
+
+        case AvatarAward:
+            // inject the sync information for all types of possible entries
+            injectSyncStuff(toReturn, ET_AVATAR_AWARD);
+
+            break;
+
+    }
+
+    return toReturn;
+}
+
+void injectSyncStuff(XDBF *x, int type)
+{
     // create a new sync data entry
     char syncData[0x18] = {0};
     syncData[7] = 1;
 
-    // inject achievement sync data
-    toReturn->injectEntry_private(ET_ACHIEVEMENT, syncData, 0x18, SYNC_DATA);
-    // inject new achievement sync list
-    toReturn->injectEntry_private(ET_ACHIEVEMENT, syncData, 0, SYNC_LIST);
-
-    // inject setting sync data
-    toReturn->injectEntry_private(ET_SETTING, syncData, 0x18, SYNC_DATA);
-    // inject new setting sync list
-    toReturn->injectEntry_private(ET_SETTING, syncData, 0, SYNC_LIST);
-
-    return toReturn;
+    // inject new sync data
+    x->injectEntry_private(type, syncData, 0x18, SYNC_DATA);
+    // inject new sync list
+    x->injectEntry_private(type, syncData, 0, SYNC_LIST);
 }

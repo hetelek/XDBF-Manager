@@ -64,6 +64,14 @@ typedef struct _FILETIME
 
 typedef enum
 {
+    Achievement,
+    Dashboard,
+    AvatarAward
+
+} GPD_Type;
+
+typedef enum
+{
     ACHIEVMENT_NOT_SYNCED = 1,
     DOWNLOAD_ACHIEVEMENT_IMAGE = 2,
     DOWNLOAD_AVATAR_AWARD = 16,

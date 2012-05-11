@@ -6,6 +6,7 @@
 #include "titleinjectordialog.h"
 #include "settinginjectorint.h"
 #include "addressconverter.h"
+#include "newgpddialog.h"
 
 Q_DECLARE_METATYPE(Entry*)
 
@@ -360,8 +361,6 @@ void MainWindow::on_actionClean_GPD_triggered()
 
 void MainWindow::on_actionNew_triggered()
 {
-    QString filePath = QFileDialog::getSaveFileName(this, tr("Where should the new GPD be created?"), desktop_location);
-    if (filePath == "")
-        return;
-    xdbf = XDBFcreate(filePath.toStdString());
+    NewGpdDialog dialog(this, &xdbf);
+    dialog.exec();
 }
