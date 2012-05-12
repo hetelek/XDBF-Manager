@@ -1171,7 +1171,7 @@ XDBF* XDBFcreate(string filePath, GPD_Type type, char *imageData, size_t imageDa
     newFile.write((unsigned int)0x10000);
     newFile.write((unsigned int)0x200);
     newFile.write((unsigned long long)0x200);
-    newFile.write((unsigned int)0);
+    newFile.write((unsigned int)1);
 
     // create a buffer to hold the crap to write
     char zeroBuff[0x340];
@@ -1180,6 +1180,21 @@ XDBF* XDBFcreate(string filePath, GPD_Type type, char *imageData, size_t imageDa
     // write the entry and memory table, since the file is new all the entries will be null
     for (int i = 0; i < 16; i++)
         newFile.write(zeroBuff, 0x340);
+
+    unsigned int fileLen;
+    if (type == Achievement)
+        fileLen = (imageDataLen + ((gameName->length() + 1) * 2) + 0x30);
+    else if (type == Dashboard)
+        fileLen = (imageDataLen + 0x6E);
+    else
+        fileLen = 0x18;
+
+    // set the file data free mem table entry
+    newFile.setPosition(0x2418);
+    newFile.write(fileLen);
+    newFile.write(0xFFFFFFFF - fileLen);
+
+    newFile.setPosition(0x3418);
 
     // close the new file
     newFile.close();

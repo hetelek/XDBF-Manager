@@ -56,14 +56,40 @@ void MainWindow::on_actionOpen_triggered()
         xdbf->close();
         xdbf = NULL;
     }
-    clear_items();
 
     QByteArray ba = file_name.toAscii();
-    const char* name = ba.data();
+    name = ba.data();
 
+    xdbf = new XDBF(name);
+
+    loadEntries();
+
+    return;
+}
+
+void MainWindow::clear_items()
+{
+    for (int i = ui->tableWidget->rowCount() - 1; i >= 0; --i)
+        ui->tableWidget->removeRow(i);
+}
+
+void MainWindow::on_actionClose_triggered()
+{
+    if(xdbf == NULL)
+        return;
+
+    xdbf->close();
+    xdbf = NULL;
+    clear_items();
+
+    setWindowTitle("XDBF Manager");
+}
+
+void MainWindow::loadEntries()
+{
     try
     {
-        xdbf = new XDBF(name);
+        clear_items();
         Entry *entries = xdbf->get_entries();
         if (entries == NULL)
             return;
@@ -101,26 +127,6 @@ void MainWindow::on_actionOpen_triggered()
     {
         QMessageBox::warning(this, "Error", exception, QMessageBox::Ok);
     }
-
-    return;
-}
-
-void MainWindow::clear_items()
-{
-    for (int i = ui->tableWidget->rowCount() - 1; i >= 0; --i)
-        ui->tableWidget->removeRow(i);
-}
-
-void MainWindow::on_actionClose_triggered()
-{
-    if(xdbf == NULL)
-        return;
-
-    xdbf->close();
-    xdbf = NULL;
-    clear_items();
-
-    setWindowTitle("XDBF Manager");
 }
 
 void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
@@ -270,6 +276,8 @@ void MainWindow::on_actionAdd_New_Entry_triggered()
 {
     NewEntryChooser entryChooser(this, xdbf);
     entryChooser.exec();
+
+    loadEntries();
 }
 
 void MainWindow::on_actionExtract_All_triggered()
@@ -363,4 +371,6 @@ void MainWindow::on_actionNew_triggered()
 {
     NewGpdDialog dialog(this, &xdbf);
     dialog.exec();
+
+    loadEntries();
 }

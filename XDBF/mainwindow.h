@@ -25,11 +25,11 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    
+
 private slots:
     void on_actionOpen_triggered();
 
@@ -54,6 +54,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     char *friendlyNames[6];
+    const char* name;
     XDBF *xdbf;
     void clear_items();
     template<typename T2, typename T1> inline T2 parse_decimal(const T1 &in);
@@ -68,6 +69,7 @@ private:
     string FILETIME_to_string(FILETIME *pft);
     QString desktop_location;
     void extractFiles(QList<QTableWidgetItem *> items);
+    void loadEntries();
 };
 
 #endif // MAINWINDOW_H

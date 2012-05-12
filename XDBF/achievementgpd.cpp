@@ -60,7 +60,7 @@ void AchievementGPD::on_pushButton_3_clicked()
         return;
     }
 
-    QString filePath = QFileDialog::getSaveFileName(this, tr("Where should the new GPD be created?"), QDesktopServices::storageLocation(QDesktopServices::DesktopLocation));
+    QString filePath = QFileDialog::getSaveFileName(this, tr("Where should the new GPD be created?"), QDesktopServices::storageLocation(QDesktopServices::DesktopLocation), "*.gpd");
     if (filePath == "")
         return;
 
