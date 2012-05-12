@@ -51,6 +51,8 @@ XDBF::XDBF(string path) : filePath(path)
         entry.length = opened_file->readUInt32();
         freeMemTable.entries->push_back(entry);
     }
+
+    int a = 0;
 }
 
 XDBF::~XDBF()
@@ -667,6 +669,13 @@ unsigned int XDBF::fmalloc(size_t dataLen)
             freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), entry);
         }
 
+        // update the free mem table
+        h->free_memory_table_entry_count = freeMemTable.entryCount = freeMemTable.entries->size();
+
+        // write the new entry count
+        opened_file->setPosition(0x14);
+        opened_file->write((unsigned int)freeMemTable.entryCount);
+
         // re-write the entry table
         writeFreeMemoryTable();
 
@@ -701,6 +710,14 @@ void XDBF::ffree(unsigned int address, size_t size)
     FreeMemoryEntry entry = { getFakeOffset(address),  size };
     freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 1), entry);
 
+    // update entry count
+    freeMemTable.entryCount++;
+    h->free_memory_table_entry_count++;
+
+    // write the new entry count
+    opened_file->setPosition(0x14);
+    opened_file->write(freeMemTable.entryCount);
+
     writeFreeMemoryTable();
 }
 
@@ -712,7 +729,8 @@ void XDBF::writeEntryTable(FileIO *io)
         io->setPosition((i * 0x12) + 0x18);
         io->write(private_entries->at(i).type);
         io->write(private_entries->at(i).identifier);
-        io->write(getFakeOffset(private_entries->at(i).address));
+        unsigned int temp = getFakeOffset(private_entries->at(i).address);
+        io->write(temp);
         io->write(private_entries->at(i).length);
     }
 }
@@ -761,13 +779,23 @@ void XDBF::removeEntry(Entry *entry)
 
 void XDBF::writeFreeMemoryTable()
 {
+    // update the last free mem table entry
+    opened_file->setPosition(0, ios_base::end);
+    unsigned int pos = getFakeOffset(opened_file->getPosition());
+    freeMemTable.entries->at(freeMemTable.entries->size() - 1).offsetSpecifier = pos;
+    freeMemTable.entries->at(freeMemTable.entries->size() - 1).length = 0xFFFFFFFF - pos;
+
     int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
     opened_file->setPosition(freeMemoryOffset);
-    for (int i = 0; i < freeMemTable.entryCount - 1; i++)
+    for (int i = 0; i < freeMemTable.entryCount; i++)
     {
         opened_file->write(freeMemTable.entries->at(i).offsetSpecifier);
         opened_file->write(freeMemTable.entries->at(i).length);
     }
+
+    // null out the rest of the table
+    for (int i = 0; i < h->free_memory_table_length - freeMemTable.entryCount; i++)
+        opened_file->write((unsigned long long)0);
 }
 
 void XDBF::injectTitleEntry(Title_Entry *entry, unsigned long long id)
