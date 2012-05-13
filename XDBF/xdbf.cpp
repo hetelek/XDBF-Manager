@@ -1118,6 +1118,15 @@ void XDBF::cleanGPD()
     // write all the entry table with the updated addresses
     writeEntryTable(newFile);
 
+    // get the length of the file
+    newFile->setPosition(0, ios_base::end);
+    unsigned int addr = getFakeOffset(newFile->getPosition());
+
+    // write file info free mem setting entry
+    newFile->setPosition((h->entry_table_length * 0x12) + 0x18);
+    newFile->write(addr);
+    newFile->write(0xFFFFFFFF - addr);
+
     // the file to read/write from now will be the one we just created
     opened_file->close();
     delete opened_file;
