@@ -4,6 +4,7 @@
 #include "titleinjectordialog.h"
 #include "settinginjectorint.h"
 #include "imageinjectordialog.h"
+#include "stringinjector.h"
 
 NewEntryChooser::NewEntryChooser(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::NewEntryChooser), xdbf(xdbf)
 {
@@ -80,6 +81,12 @@ void NewEntryChooser::on_pushButton_clicked()
         case 9:
         {
             TitleInjectorDialog dialog(this, xdbf);
+            dialog.exec();
+            break;
+        }
+        case 10:
+        {
+            StringInjector dialog(this, xdbf);
             dialog.exec();
             break;
         }
