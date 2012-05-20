@@ -49,6 +49,8 @@ BinaryInjector::BinaryInjector(XDBF *xdbf_pv, QWidget *parent) :
         {
             ui->comboBox->addItem(QString::fromStdString(Entry_ID_to_string(knownIDs[i])));
         }
+
+    setFixedSize(size());
 }
 
 BinaryInjector::~BinaryInjector()

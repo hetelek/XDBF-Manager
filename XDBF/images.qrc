@@ -11,5 +11,9 @@
         <file>images/convert.png</file>
         <file>images/clean.png</file>
         <file>images/default image.png</file>
+        <file>images/about.png</file>
+        <file>images/free60.png</file>
+        <file>images/github.fixed.png</file>
+        <file>images/xboxmb.png</file>
     </qresource>
 </RCC>

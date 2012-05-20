@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>XDBF Manager</string>
+   <string>XDBF Manager - ALPHA BUILD</string>
   </property>
   <property name="windowIcon">
    <iconset resource="images.qrc">
@@ -23,6 +23,9 @@
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <widget class="QTableWidget" name="tableWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>
         </property>
@@ -33,14 +36,7 @@
          <enum>QAbstractItemView::SelectRows</enum>
         </property>
         <property name="sortingEnabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_3">
-        <property name="text">
-         <string>Remove Selected Entries/Entry</string>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -79,9 +75,16 @@
     <addaction name="actionAddress_Converter"/>
     <addaction name="actionClean_GPD"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
    <addaction name="menuTools_2"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -122,6 +125,9 @@
    </property>
   </action>
   <action name="actionAddress_Converter">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/convert.png</normaloff>:/images/convert.png</iconset>
@@ -131,6 +137,9 @@
    </property>
   </action>
   <action name="actionClean_GPD">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/clean.png</normaloff>:/images/clean.png</iconset>
@@ -146,6 +155,15 @@
    </property>
    <property name="text">
     <string>New</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/about.png</normaloff>:/images/about.png</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

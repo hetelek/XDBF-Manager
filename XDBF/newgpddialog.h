@@ -13,7 +13,7 @@ class NewGpdDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit NewGpdDialog(QWidget *parent = 0, XDBF **xdbf = NULL);
+    explicit NewGpdDialog(QWidget *parent = 0, XDBF **xdbf = NULL, bool *b = NULL);
     ~NewGpdDialog();
     
 private slots:
@@ -24,6 +24,7 @@ private slots:
 private:
     Ui::NewGpdDialog *ui;
     XDBF **xdbf;
+    bool *b;
 };
 
 #endif // NEWGPDDIALOG_H

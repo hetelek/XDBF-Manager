@@ -145,7 +145,7 @@ void TitleInjectorDialog::on_pushButton_2_clicked()
     Title_Entry entry =
     {
         NULL,
-        ui->titleID->text().toInt(0, 16),
+        ui->titleID->text().toUInt(0, 16),
         ui->chievCount->value(),
         ui->chievsUnlocked->value(),
         ui->gamerscore->value(),

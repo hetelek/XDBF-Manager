@@ -7,7 +7,7 @@
 #include "achievementgpd.h"
 #include <QMessageBox>
 
-NewGpdDialog::NewGpdDialog(QWidget *parent, XDBF **xdbf) : QDialog(parent), ui(new Ui::NewGpdDialog), xdbf(xdbf)
+NewGpdDialog::NewGpdDialog(QWidget *parent, XDBF **xdbf, bool *b) : QDialog(parent), ui(new Ui::NewGpdDialog), xdbf(xdbf), b(b)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
@@ -25,7 +25,7 @@ void NewGpdDialog::on_pushButton_clicked()
         // achievment gpd
         case 0:
         {
-            AchievementGPD dialog(this, xdbf);
+            AchievementGPD dialog(this, xdbf, b);
             this->setVisible(false);
             dialog.exec();
             break;
@@ -47,6 +47,7 @@ void NewGpdDialog::on_pushButton_clicked()
             *xdbf = XDBFcreate(filePath.toStdString(), Dashboard, ba.data(), ba.size());
 
             QMessageBox::information(this, "Success", "Successfully created the new dashboard GPD.");
+            *b = true;
             break;
         }
 
@@ -60,6 +61,7 @@ void NewGpdDialog::on_pushButton_clicked()
             *xdbf = XDBFcreate(filePath.toStdString(), AvatarAward);
 
             QMessageBox::information(this, "Success", "Successfully created the new avatar award GPD.");
+            *b = true;
             break;
         }
     }

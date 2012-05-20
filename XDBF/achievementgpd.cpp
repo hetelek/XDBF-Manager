@@ -5,7 +5,7 @@
 #include <QMessageBox>
 #include <QBuffer>
 
-AchievementGPD::AchievementGPD(QWidget *parent, XDBF **xdbf) : QDialog(parent), ui(new Ui::AchievementGPD), xdbf(xdbf), imageOpened(false)
+AchievementGPD::AchievementGPD(QWidget *parent, XDBF **xdbf, bool *b) : QDialog(parent), ui(new Ui::AchievementGPD), xdbf(xdbf), imageOpened(false), b(b)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
@@ -74,6 +74,7 @@ void AchievementGPD::on_pushButton_3_clicked()
     *xdbf = XDBFcreate(filePath.toStdString(), Achievement, ba.data(), ba.size(), &str);
 
     QMessageBox::information(this, "Success", "Successfully created a new achievement GPD.");
+    *b = true;
 
     close();
 }

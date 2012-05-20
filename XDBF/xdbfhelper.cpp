@@ -1,4 +1,6 @@
 #include "xdbfhelper.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 void SwapEndian(void *array, int elemSize, int len)
 {

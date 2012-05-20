@@ -28,6 +28,7 @@ private:
     Ui::AchievementInjectorDialog *ui;
     XDBF *xdbf;
     QImage image;
+    bool isOpened;
 };
 
 #endif // ACHIEVEMENTINJECTORDIALOG_H

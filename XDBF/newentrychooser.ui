@@ -75,11 +75,6 @@
            <string>String</string>
           </property>
          </item>
-         <item>
-          <property name="text">
-           <string>Avatar Award</string>
-          </property>
-         </item>
         </widget>
        </item>
       </layout>

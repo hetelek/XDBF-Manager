@@ -35,7 +35,8 @@ SOURCES += main.cpp\
     newgpddialog.cpp \
     achievementgpd.cpp \
     stringinjector.cpp \
-    binaryinjector.cpp
+    binaryinjector.cpp \
+    about.cpp
 
 HEADERS  += mainwindow.h \
     xdbf.h \
@@ -55,7 +56,8 @@ HEADERS  += mainwindow.h \
     newgpddialog.h \
     achievementgpd.h \
     stringinjector.h \
-    binaryinjector.h
+    binaryinjector.h \
+    about.h
 
 FORMS    += mainwindow.ui \
     imagedialog.ui \
@@ -72,7 +74,8 @@ FORMS    += mainwindow.ui \
     newgpddialog.ui \
     achievementgpd.ui \
     stringinjector.ui \
-    binaryinjector.ui
+    binaryinjector.ui \
+    about.ui
 
 RESOURCES += \
     images.qrc

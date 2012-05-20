@@ -13,7 +13,7 @@ class AchievementGPD : public QDialog
     Q_OBJECT
     
 public:
-    explicit AchievementGPD(QWidget *parent = 0, XDBF **xdbf = NULL);
+    explicit AchievementGPD(QWidget *parent = 0, XDBF **xdbf = NULL, bool *b = NULL);
     ~AchievementGPD();
     
 private slots:
@@ -27,6 +27,7 @@ private:
     Ui::AchievementGPD *ui;
     bool imageOpened;
     XDBF **xdbf;
+    bool *b;
 };
 
 #endif // ACHIEVEMENTGPD_H

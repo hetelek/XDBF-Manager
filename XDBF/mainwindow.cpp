@@ -7,6 +7,7 @@
 #include "settinginjectorint.h"
 #include "addressconverter.h"
 #include "newgpddialog.h"
+#include "about.h"
 
 Q_DECLARE_METATYPE(Entry*)
 
@@ -73,6 +74,8 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::clear_items()
 {
+    ui->tableWidget->setSortingEnabled(false);
+
     for (int i = ui->tableWidget->rowCount() - 1; i >= 0; --i)
         ui->tableWidget->removeRow(i);
 }
@@ -91,7 +94,7 @@ void MainWindow::on_actionClose_triggered()
     xdbf = NULL;
     clear_items();
 
-    setWindowTitle("XDBF Manager");
+    setWindowTitle("XDBF Manager - ALPHA BUID");
 }
 
 void MainWindow::loadEntries()
@@ -99,6 +102,7 @@ void MainWindow::loadEntries()
     try
     {
         clear_items();
+
         Entry *entries = xdbf->get_entries();
         if (entries == NULL)
             return;
@@ -127,10 +131,11 @@ void MainWindow::loadEntries()
             {
                 wchar_t *titleName = (wchar_t*)xdbf->extract_entry(&entries[i]);
                 SwapEndianUnicode(titleName, entries[i].length);
-                setWindowTitle("XDBF Manager - " + QString::fromWCharArray(titleName));
+                setWindowTitle("XDBF Manager - ALPHA BUILD - " + QString::fromWCharArray(titleName));
             }
             ui->tableWidget->setItem(i, 3, new QTableWidgetItem(friendlyNames[entries[i].type - 1] + setting_entry_name));
         }
+        ui->tableWidget->setSortingEnabled(true);
     }
     catch(char *exception)
     {
@@ -230,24 +235,6 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     }
 }
 
-void MainWindow::showIntMessageBox(unsigned long long num, QString message_header, QString title)
-{
-    QString decimal = "<b>Decimal:</b> " + QString::number(num);
-    QString hex = "<b>Hexadecimal:</b> 0x" + QString::number(num, 16);
-    QString octal = "<b>Octal:</b> 0" + QString::number(num, 8) + "</html>";
-
-    QMessageBox::about(this, title, message_header + decimal + "<br />" + hex + "<br />" + octal);
-}
-
-void MainWindow::showFloatMessageBox(double num, QString message_header, QString title)
-{
-    QString standard = "<b>Standard:</b> " + QString::number(num);
-    char nipples[25];
-    sprintf(nipples, "%E\0", num);
-    QString scientificNotation = "<b>Scientific Notation: </b>" + QString::fromAscii(nipples);
-    QMessageBox::about(this, title, message_header + standard + "<br />" + scientificNotation + "</html>");
-}
-
 void MainWindow::showStringMessageBox(const wchar_t *wStr, QString message_header, QString title)
 {
     int strLen = QString::fromWCharArray(wStr).length();
@@ -255,12 +242,6 @@ void MainWindow::showStringMessageBox(const wchar_t *wStr, QString message_heade
     QString uni_len = "<b>String Length:</b> " + QString::number(strLen) + "</html>";
 
     QMessageBox::about(this, title, message_header + uni_str + "<br />" + uni_len);
-}
-
-void MainWindow::showDatetimeMessageBox(FILETIME time, QString message_header, QString title)
-{
-    QString time_str = "<b>Datetime:</b> " + QString::fromStdString(XDBF::FILETIME_to_string(&time)) + "</html>";
-    QMessageBox::about(this, title, message_header + time_str);
 }
 
 void MainWindow::on_pushButton_3_clicked()
@@ -288,12 +269,12 @@ void MainWindow::on_actionAdd_New_Entry_triggered()
 
 void MainWindow::on_actionExtract_All_triggered()
 {
-    QString s = ui->tableWidget->itemAt(0, 4)->text();
-
     QList<QTableWidgetItem*> items;
     for (int i = 0; i < ui->tableWidget->rowCount(); i++)
-        for (int x = 0; x < ui->tableWidget->columnCount(); x++)
-            items.push_back(ui->tableWidget->itemAt(x, i));
+        items.push_back(ui->tableWidget->item(i, 0));
+    for (int x = 0; x < ui->tableWidget->rowCount() * 3; x++)
+        items.push_back(NULL);
+
     extractFiles(items);
 }
 
@@ -375,8 +356,22 @@ void MainWindow::on_actionClean_GPD_triggered()
 
 void MainWindow::on_actionNew_triggered()
 {
-    NewGpdDialog dialog(this, &xdbf);
+    bool a = false;
+    NewGpdDialog dialog(this, &xdbf, &a);
     dialog.exec();
 
+    if (!a)
+        return;
+
     loadEntries();
+    ui->actionAdd_New_Entry->setEnabled(true);
+    ui->actionExtract_All->setEnabled(true);
+    ui->actionClean_GPD->setEnabled(true);
+    ui->actionAddress_Converter->setEnabled(true);
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    About dialog(this);
+    dialog.exec();
 }

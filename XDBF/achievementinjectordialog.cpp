@@ -6,7 +6,7 @@
 #include <QDesktopServices>
 #include <QBuffer>
 
-AchievementInjectorDialog::AchievementInjectorDialog(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::AchievementInjectorDialog), xdbf(xdbf)
+AchievementInjectorDialog::AchievementInjectorDialog(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::AchievementInjectorDialog), xdbf(xdbf), isOpened(false)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
@@ -47,6 +47,21 @@ void AchievementInjectorDialog::on_comboBox_currentIndexChanged(int index)
 
 void AchievementInjectorDialog::on_pushButton_clicked()
 {
+    if (ui->nameTxt->text().length() == 0)
+    {
+        QMessageBox::warning(this, "Whoops!", "You forget to give a name to your achievement!");
+        return;
+    }
+    else if (ui->lockedDescTxt->toPlainText().length() == 0)
+    {
+        QMessageBox::warning(this, "Whoops!", "You forget to provide a locked description for your achievement!");
+        return;
+    }
+    else if (ui->unlockedDescTxt->toPlainText().length() == 0)
+    {
+        QMessageBox::warning(this, "Whoops!", "You forget to provide an unlocked description for your achievement!");
+        return;
+    }
     Achievement_Entry entry = {0};
 
     // set the entry's name, i have to make a copy of the text so that the internal function can
@@ -79,6 +94,13 @@ void AchievementInjectorDialog::on_pushButton_clicked()
     // get the achievement image, if there is one
     if (ui->imageChbx->checkState() == 2)
     {
+        // ensure that the user selected an image
+        if (!isOpened)
+        {
+            QMessageBox::warning(this, "Whoops!", "You forget to select an achievement image!");
+            return;
+        }
+
         // convert the image to a byte array for writing
         QByteArray ba;
         QBuffer buffer(&ba);
@@ -130,4 +152,5 @@ void AchievementInjectorDialog::on_openImageBtn_clicked()
         return;
     }
     ui->chievImg->setPixmap(QPixmap::fromImage(image));
+    isOpened = true;
 }
