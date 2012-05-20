@@ -71,6 +71,7 @@ public:
     int get_offset(unsigned int offset_specifier);
     int getFakeOffset(unsigned int realAddress);
     void cleanGPD();
+    vector<unsigned short> getEntrySyncTypes();
 
     static std::string FILETIME_to_string(FILETIME *pft);
     friend XDBF* XDBFcreate(string filePath, GPD_Type type, char *imageData = NULL, size_t imageDataLen = 0, wstring *gameName = NULL);

@@ -1272,6 +1272,15 @@ XDBF* XDBFcreate(string filePath, GPD_Type type, char *imageData, size_t imageDa
     return toReturn;
 }
 
+vector<unsigned short> XDBF::getEntrySyncTypes()
+{
+    vector<unsigned short> toReturn;
+    for (int i = 1; i < 6; i++)
+        if (get_entry_by_id((i == 6) ? 1 : SYNC_LIST, i) != NULL)
+            toReturn.push_back(i);
+    return toReturn;
+}
+
 void injectSyncStuff(XDBF *x, int type)
 {
     // create a new sync data entry

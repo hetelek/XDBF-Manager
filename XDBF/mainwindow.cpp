@@ -61,8 +61,16 @@ void MainWindow::on_actionOpen_triggered()
     QByteArray ba = file_name.toAscii();
     name = ba.data();
 
-    xdbf = new XDBF(name);
-    loadEntries();
+    try
+    {
+        xdbf = new XDBF(name);
+        loadEntries();
+    }
+    catch (...)
+    {
+        QMessageBox::critical(this, "Error", "An unknown error occured while opening the GPD!");
+        return;
+    }
 
     ui->actionAdd_New_Entry->setEnabled(true);
     ui->actionExtract_All->setEnabled(true);
