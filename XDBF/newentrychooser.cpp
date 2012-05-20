@@ -5,6 +5,7 @@
 #include "settinginjectorint.h"
 #include "imageinjectordialog.h"
 #include "stringinjector.h"
+#include "binaryinjector.h"
 
 NewEntryChooser::NewEntryChooser(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::NewEntryChooser), xdbf(xdbf)
 {
@@ -69,6 +70,12 @@ void NewEntryChooser::on_pushButton_clicked()
         case 6:
         {
             SettingInjectorInt dialog(this, xdbf, SET_FLOAT);
+            dialog.exec();
+            break;
+        }
+        case 7:
+        {
+            BinaryInjector dialog(xdbf, this);
             dialog.exec();
             break;
         }

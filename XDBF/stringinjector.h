@@ -13,7 +13,7 @@ class StringInjector : public QDialog
     Q_OBJECT
     
 public:
-    explicit StringInjector(QWidget *parent = 0, XDBF *xdbf);
+    explicit StringInjector(QWidget *parent = 0, XDBF *xdbf = NULL);
     ~StringInjector();
     
 private slots:

@@ -98,6 +98,9 @@
    </property>
   </action>
   <action name="actionAdd_New_Entry">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
@@ -107,6 +110,9 @@
    </property>
   </action>
   <action name="actionExtract_All">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/extract.png</normaloff>:/images/extract.png</iconset>

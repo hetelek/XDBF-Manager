@@ -230,7 +230,7 @@ void FileIO::write(string str)
 void FileIO::write(wstring wstr)
 {
     if (isLitttleEndian)
-        for (int i = 0; i < wstr.size(); i++)
+        for (unsigned int i = 0; i < wstr.size(); i++)
             SwapEndian((UINT16*)&wstr[i]);
     write((void*)wstr.c_str(), (wstr.size() + 1) * 2);
 }

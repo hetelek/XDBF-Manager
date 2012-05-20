@@ -61,8 +61,12 @@ void MainWindow::on_actionOpen_triggered()
     name = ba.data();
 
     xdbf = new XDBF(name);
-
     loadEntries();
+
+    ui->actionAdd_New_Entry->setEnabled(true);
+    ui->actionExtract_All->setEnabled(true);
+    ui->actionClean_GPD->setEnabled(true);
+    ui->actionAddress_Converter->setEnabled(true);
 
     return;
 }
@@ -77,6 +81,11 @@ void MainWindow::on_actionClose_triggered()
 {
     if(xdbf == NULL)
         return;
+
+    ui->actionAdd_New_Entry->setEnabled(false);
+    ui->actionExtract_All->setEnabled(false);
+    ui->actionClean_GPD->setEnabled(false);
+    ui->actionAddress_Converter->setEnabled(false);
 
     xdbf->close();
     xdbf = NULL;
@@ -154,9 +163,6 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     else if (e->type == ET_SETTING)
     {
         Setting_Entry *se = xdbf->get_setting_entry(e);
-
-        QString title = QString::fromStdString(XDBF::get_setting_entry_name(se)) + " Data";
-        const QString message_header = "<html><center><h3>" + title + " (Setting Entry)</h3></center><hr /><br />";
         switch (se->type)
         {
             case SET_INT32:

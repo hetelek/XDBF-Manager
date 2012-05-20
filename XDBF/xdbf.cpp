@@ -170,7 +170,7 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
             bin_size = opened_file->readUInt32();
             s_entry->binary.size = bin_size;
             s_entry->binary.data = new char[bin_size];
-            opened_file->setPosition(entry->address + 0x18);
+            opened_file->setPosition(entry->address + 0x14);
             opened_file->read(s_entry->binary.data, bin_size);
             break;
 
@@ -949,6 +949,20 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
 
             // inject the entry
             injectEntry_private(ET_SETTING, data, 0x18, id);
+            break;
+        case SET_BINARY:
+            if(entry->binary.size > 0x3E8)
+                throw "Binary data too large to inject. Max = 1000(0x3E8)";
+
+            int size = entry->binary.size + 0x14;
+            char *buffer = new char[size];
+            memset(buffer, 0, size);
+            writeSettingMetaData(buffer, id, SET_BINARY);
+            SwapEndian(&entry->binary.size);
+            *(int*)&buffer[0x10] = entry->binary.size;
+            SwapEndian(&entry->binary.size);
+            memcpy(&buffer[0x14], entry->binary.data, entry->binary.size);
+            injectEntry_private(ET_SETTING, buffer, size, id);
             break;
     }
 }

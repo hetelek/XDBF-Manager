@@ -27,7 +27,7 @@ void StringInjector::on_pushButton_clicked()
         return;
     }
 
-    xdbf->injectStringEntry(ui->lineEdit->text().toStdWString(), ui->lineEdit_2->text().number());
+    xdbf->injectStringEntry(ui->lineEdit->text().toStdWString(), ui->lineEdit_2->text().toULongLong());
 
     QMessageBox::information(this, "Success", "Successfully injected unicode string entry.");
     close();

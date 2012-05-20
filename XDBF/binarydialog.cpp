@@ -17,7 +17,8 @@ BinaryDialog::BinaryDialog(QWidget *parent, Setting_Entry *entry) : QDialog(pare
     ui->tableWidget->setHorizontalHeaderLabels(columnHeaders);
 
     bool end_loop = false;
-    for(int i = 0; i < entry->binary.size / 0x10; i++)
+    int l1 = (entry->binary.size < 0x10) ? 1 : entry->binary.size / 0x10;
+    for(int i = 0; i < l1; i++)
     {
         for(int x = 0; x < 0x10; x++)
         {
