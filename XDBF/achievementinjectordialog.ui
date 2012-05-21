@@ -124,7 +124,11 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="gamerscoreSpin"/>
+      <widget class="QSpinBox" name="gamerscoreSpin">
+       <property name="maximum">
+        <number>2147483647</number>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

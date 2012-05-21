@@ -11,7 +11,7 @@
 
 Q_DECLARE_METATYPE(Entry*)
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent, string filePath) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     desktop_location = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
     ObjectRole = Qt::UserRole + 1;
@@ -38,6 +38,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->tableWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRemoveContextMenu(QPoint)));
+
+    if (filePath != "")
+    {
+        try
+        {
+            xdbf = new XDBF(filePath);
+            loadEntries();
+        }
+        catch (...)
+        {
+            QMessageBox::critical(this, "Error", "An unknown error occured while opening the GPD!");
+            return;
+        }
+    }
 }
 
 MainWindow::~MainWindow()
@@ -76,6 +90,7 @@ void MainWindow::on_actionOpen_triggered()
     ui->actionExtract_All->setEnabled(true);
     ui->actionClean_GPD->setEnabled(true);
     ui->actionAddress_Converter->setEnabled(true);
+    ui->actionClose->setEnabled(true);
 
     return;
 }
@@ -97,6 +112,7 @@ void MainWindow::on_actionClose_triggered()
     ui->actionExtract_All->setEnabled(false);
     ui->actionClean_GPD->setEnabled(false);
     ui->actionAddress_Converter->setEnabled(false);
+    ui->actionClose->setEnabled(false);
 
     xdbf->close();
     xdbf = NULL;
@@ -387,6 +403,7 @@ void MainWindow::on_actionNew_triggered()
     ui->actionExtract_All->setEnabled(true);
     ui->actionClean_GPD->setEnabled(true);
     ui->actionAddress_Converter->setEnabled(true);
+    ui->actionClose->setEnabled(true);
 }
 
 void MainWindow::on_actionAbout_triggered()

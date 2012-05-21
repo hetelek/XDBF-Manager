@@ -46,6 +46,11 @@ void AchievementGPD::on_pushButton_clicked()
         QMessageBox::critical(this, "Invalid Image", "Error occured while opening the file!");
         return;
     }
+    else if (image->height() != 64 && image->width() != 64)
+    {
+        QMessageBox::warning(this, "Wrong Dimensions", "The image must be 64x64!");
+        return;
+    }
 
     ui->image->setPixmap(QPixmap::fromImage(*image));
 
