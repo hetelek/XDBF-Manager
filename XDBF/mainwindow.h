@@ -37,8 +37,6 @@ private slots:
 
     void on_tableWidget_doubleClicked(const QModelIndex &index);
 
-    void on_pushButton_3_clicked();
-
     void on_actionAdd_New_Entry_triggered();
 
     void on_actionExtract_All_triggered();

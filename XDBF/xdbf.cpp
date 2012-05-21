@@ -259,15 +259,15 @@ Achievement_Entry* XDBF::get_achievement_entry(Entry *entry)
 
 Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
 {
+    Sync_List list = { 0 };
     // make sure the entry exists
     Entry *syncListTarget = get_entry_by_id(identifier, et_type);
     if(syncListTarget == NULL)
-        throw "Unable to locate entry.";
+        return list;
 
     int syncsInList = syncListTarget->length / 0x10;
 
     // initialize 'list'
-    Sync_List list;
     list.sync_data = get_sync_data(et_type, identifier * 2);
     list.list_entry = syncListTarget;
     list.entry_count = syncsInList;
@@ -419,15 +419,7 @@ void XDBF::write_sync_list(Sync_List *sl)
     opened_file->write(next);
 
     if(diff > 0)
-    {
-        // update free memory table length
-        h->free_memory_table_entry_count++;
-        opened_file->setPosition(0x14);
-        opened_file->write(h->free_memory_table_entry_count);
-        freeMemTable.entryCount++;
-
         ffree(sl->list_entry->address, newSize);
-    }
 
     // update the entry size
     sl->list_entry->length = newSize;
@@ -708,7 +700,8 @@ void XDBF::ffree(unsigned int address, size_t size)
         return;
 
     FreeMemoryEntry entry = { getFakeOffset(address),  size };
-    freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 1), entry);
+    vector<FreeMemoryEntry>::iterator toInsert = freeMemTable.entries->end() - 1;
+    freeMemTable.entries->insert(toInsert, entry);
 
     // update entry count
     freeMemTable.entryCount++;
@@ -740,6 +733,8 @@ void XDBF::removeEntry(Entry *entry)
     if (entry == NULL)
         return;
 
+    if (entry->identifier == SYNC_LIST || entry->identifier == SYNC_DATA || (entry->identifier == 1 && entry->type == ET_AVATAR_AWARD) || (entry->identifier == 2 && entry->type == ET_AVATAR_AWARD))
+        throw "You can't remove sync data or sync lists.";
 
     // remove sync entry
     Sync_List list = get_sync_list(entry->type, (entry->type == ET_AVATAR_AWARD) ? 1 : SYNC_LIST);
@@ -767,11 +762,9 @@ void XDBF::removeEntry(Entry *entry)
     h->free_memory_table_entry_count++;
     opened_file->setPosition(0x14);
     opened_file->write(h->free_memory_table_entry_count);
-    freeMemTable.entryCount++;
 
-    // mark entry as unused memory
-    FreeMemoryEntry freeMem = { getFakeOffset(temp.address), temp.length };
-    freeMemTable.entries->insert(freeMemTable.entries->begin() + (freeMemTable.entries->size() - 2), freeMem);
+    // free the memory
+    ffree(entry->address, entry->length);
 
     // re-write the free memory table
     writeFreeMemoryTable();

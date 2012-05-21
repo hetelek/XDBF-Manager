@@ -15,5 +15,6 @@
         <file>images/free60.png</file>
         <file>images/github.fixed.png</file>
         <file>images/xboxmb.png</file>
+        <file>images/close.png</file>
     </qresource>
 </RCC>

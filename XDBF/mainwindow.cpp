@@ -252,21 +252,6 @@ void MainWindow::showStringMessageBox(const wchar_t *wStr, QString message_heade
     QMessageBox::about(this, title, message_header + uni_str + "<br />" + uni_len);
 }
 
-void MainWindow::on_pushButton_3_clicked()
-{
-    if(ui->tableWidget->selectedItems().count() < 1)
-        return;
-
-    for(int i = 0; i < ui->tableWidget->selectedItems().count(); i++)
-    {
-        QTableWidgetItem *item = ui->tableWidget->selectedItems()[i];
-        Entry *e = item->data(ObjectRole).value<Entry*>();
-        xdbf->removeEntry(e);
-
-        ui->tableWidget->removeRow(item->row());
-    }
-}
-
 void MainWindow::on_actionAdd_New_Entry_triggered()
 {
     NewEntryChooser entryChooser(this, xdbf);
@@ -338,13 +323,39 @@ void MainWindow::showRemoveContextMenu(const QPoint &pos)
     QPoint globalPos = ui->tableWidget->mapToGlobal(pos);
 
     QMenu contextMenu;
-    QIcon icon;
+    QIcon icon, icon2;
     icon.addPixmap(QPixmap::fromImage(QImage(":/images/extract.png")));
     contextMenu.addAction(icon, "Extract Selected");
 
+    icon2.addPixmap(QPixmap::fromImage(QImage(":/images/cancel.png")));
+    contextMenu.addAction(icon2, "Remove Selected");
+
     QAction *selectedItem = contextMenu.exec(globalPos);
-    if (selectedItem)
-        extractFiles(ui->tableWidget->selectedItems());
+    if(selectedItem == NULL)
+        return;
+
+    try
+    {
+        if(selectedItem->text() == "Remove Selected")
+        {
+            QList<QTableWidgetItem*> items = ui->tableWidget->selectedItems();
+
+            for(int i = 0; i < items.count() / 4; i++)
+            {
+                Entry *e = items[i]->data(ObjectRole).value<Entry*>();
+                xdbf->removeEntry(e);
+                ui->tableWidget->removeRow(items[i]->row());
+            }
+        }
+        else if(selectedItem->text() == "Extract Selected")
+        {
+            extractFiles(ui->tableWidget->selectedItems());
+        }
+    }
+    catch(char *str)
+    {
+        QMessageBox::warning(this, "Error Thrown", QString::fromLocal8Bit(str));
+    }
 }
 
 void MainWindow::on_actionAddress_Converter_triggered()
