@@ -124,7 +124,7 @@ FileIO *XDBF::get_file()
     return opened_file;
 }
 
-Setting_Entry* XDBF::get_setting_entry(Entry *entry)
+Setting_Entry* XDBF::getSettingEntry(Entry *entry)
 {
     if (entry->type != ET_SETTING)
         return NULL;
@@ -186,6 +186,15 @@ Setting_Entry* XDBF::get_setting_entry(Entry *entry)
             throw "Invalid setting entry type.";
     }
     return s_entry;
+}
+
+std::wstring XDBF::getStringEntry(Entry *e)
+{
+    if(e->type != ET_STRING)
+        throw "Given entry is not a string entry.";
+
+    opened_file->setPosition(e->address);
+    return opened_file->readUnicodeString();
 }
 
 std::string XDBF::get_setting_entry_name(Setting_Entry *s_entry)

@@ -44,7 +44,7 @@ public:
     FileIO *get_file();
     void close();
     static std::string get_setting_entry_name(Setting_Entry *s_entry);
-    Setting_Entry* get_setting_entry(Entry *entry);
+    Setting_Entry* getSettingEntry(Entry *entry);
     Title_Entry* get_title_entry(Entry *entry);
     Achievement_Entry* get_achievement_entry(Entry *entry);
     Sync_List get_sync_list(int et_type, unsigned long long identifier = SYNC_LIST);
@@ -72,6 +72,7 @@ public:
     int getFakeOffset(unsigned int realAddress);
     void cleanGPD();
     vector<unsigned short> getEntrySyncTypes();
+    std::wstring getStringEntry(Entry *e);
 
     static std::string FILETIME_to_string(FILETIME *pft);
     friend XDBF* XDBFcreate(string filePath, GPD_Type type, char *imageData = NULL, size_t imageDataLen = 0, wstring *gameName = NULL);
