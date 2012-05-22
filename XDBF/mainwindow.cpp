@@ -148,14 +148,13 @@ void MainWindow::loadEntries()
             QString setting_entry_name = "";
             if(entries[i].type == ET_SETTING && entries[i].identifier != SYNC_LIST && entries[i].identifier != SYNC_DATA)
             {
-                Setting_Entry *entry = xdbf->get_setting_entry(&entries[i]);
+                Setting_Entry *entry = xdbf->getSettingEntry(&entries[i]);
                 setting_entry_name = " - " + QString::fromStdString(xdbf->get_setting_entry_name(entry));
             }
             else if (entries[i].identifier == 0x8000 && entries[i].type == ET_STRING)
             {
-                wchar_t *titleName = (wchar_t*)xdbf->extract_entry(&entries[i]);
-                SwapEndianUnicode(titleName, entries[i].length);
-                setWindowTitle("XDBF Manager - ALPHA BUILD - " + QString::fromWCharArray(titleName));
+                std::wstring titleName = xdbf->getStringEntry(&entries[i]);
+                setWindowTitle("XDBF Manager - ALPHA BUILD - " + QString::fromWCharArray(titleName.c_str()));
             }
             ui->tableWidget->setItem(i, 3, new QTableWidgetItem(friendlyNames[entries[i].type - 1] + setting_entry_name));
         }
@@ -191,7 +190,7 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     }
     else if (e->type == ET_SETTING)
     {
-        Setting_Entry *se = xdbf->get_setting_entry(e);
+        Setting_Entry *se = xdbf->getSettingEntry(e);
         switch (se->type)
         {
             case SET_INT32:
@@ -213,9 +212,8 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     }
     else if (e->type == ET_STRING)
     {
-        wchar_t *str = (wchar_t*)xdbf->extract_entry(e);
-        SwapEndianUnicode(str, e->length);
-        showStringMessageBox(str, "<html><center><h3>String Entry</h3></center><hr /><br />", "String Entry");
+        std::wstring str = xdbf->getStringEntry(e);
+        showStringMessageBox(str.c_str(), "<html><center><h3>String Entry</h3></center><hr /><br />", "String Entry");
     }
     else if (e->type == ET_IMAGE)
     {
