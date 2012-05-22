@@ -59,6 +59,5 @@ class FileIO
         ~FileIO(void);
     private:
         fstream *io;
-        bool isLitttleEndian;
-        void checkEndian();
+        static bool isLittleEndian();
 };

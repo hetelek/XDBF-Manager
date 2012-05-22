@@ -14,7 +14,7 @@ FileIO::FileIO(string path)
     }
 
     // check for little endian architecture
-    checkEndian();
+    isLittleEndian();
 }
 
 bool FileIO::isOpened()
@@ -39,10 +39,10 @@ FileIO::~FileIO(void)
     delete io;
 }
 
-void FileIO::checkEndian()
+bool FileIO::isLittleEndian()
 {
     int i = 1;
-    isLitttleEndian = (*(char*)&i == 1);
+    return (*(char*)&i == 1);
 }
 
 void FileIO::setPosition(long pos, ios_base::seekdir o)
@@ -60,8 +60,7 @@ short FileIO::readInt16()
 {
     short toReturn;
     read(&toReturn, 2);
-    if (isLitttleEndian)
-        SwapEndian((UINT16*)&toReturn);
+    SwapEndian((UINT16*)&toReturn);
     return toReturn;
 }
 
@@ -74,8 +73,7 @@ int FileIO::readInt32()
 {
     int toReturn;
     read(&toReturn, 4);
-    if (isLitttleEndian)
-        SwapEndian((UINT32*)&toReturn);
+    SwapEndian((UINT32*)&toReturn);
     return toReturn;
 }
 
@@ -89,8 +87,7 @@ INT64 FileIO::readInt64()
 {
     INT64 toReturn;
     read(&toReturn, 8);
-    if (isLitttleEndian)
-        SwapEndian((UINT64*)&toReturn);
+    SwapEndian((UINT64*)&toReturn);
     return toReturn;
 }
 
@@ -159,7 +156,7 @@ wstring FileIO::readUnicodeString(size_t len)
             result.append(&character);
         }
     }
-    if (!isLitttleEndian)
+    if (!isLittleEndian())
     {
         wchar_t *temp = new wchar_t[len + 1];
         memcpy(temp, result.c_str(), len);
@@ -178,43 +175,37 @@ void FileIO::write(void *destination, size_t len)
 
 void FileIO::write(short num, size_t len)
 {
-    if (isLitttleEndian)
-        SwapEndian((UINT16*)&num);
+    SwapEndian((UINT16*)&num);
     write(&num, len);
 }
 
 void FileIO::write(UINT16 num, size_t len)
 {
-    if (isLitttleEndian)
-        SwapEndian(&num);
+    SwapEndian(&num);
     write(&num, len);
 }
 
 void FileIO::write(UINT32 num, size_t len)
 {
-    if (isLitttleEndian)
-        SwapEndian(&num);
+    SwapEndian(&num);
     write(&num, len);
 }
 
 void FileIO::write(int num, size_t len)
 {
-    if (isLitttleEndian)
-        SwapEndian((UINT32*)&num);
+    SwapEndian((UINT32*)&num);
     write(&num, len);
 }
 
 void FileIO::write(INT64 num, size_t len)
 {
-    if (isLitttleEndian)
-        SwapEndian((UINT64*)&num);
+    SwapEndian((UINT64*)&num);
     write(&num, len);
 }
 
 void FileIO::write(UINT64 num, size_t len)
 {
-    if (isLitttleEndian)
-        SwapEndian(&num);
+    SwapEndian(&num);
     write(&num, len);
 }
 
@@ -229,7 +220,7 @@ void FileIO::write(string str)
 
 void FileIO::write(wstring wstr)
 {
-    if (isLitttleEndian)
+    if (isLittleEndian())
         for (unsigned int i = 0; i < wstr.size(); i++)
             SwapEndian((UINT16*)&wstr[i]);
     write((void*)wstr.c_str(), (wstr.size() + 1) * 2);
@@ -269,6 +260,9 @@ void FileIO::SwapEndian(UINT64 *ll)
 
 void FileIO::SwapEndianUnicode(wchar_t *str, int unicode_len)
 {
+    if(!isLittleEndian())
+        return;
+
     for (int i = 0; i < unicode_len / 2; i++)
-        SwapEndian(&str[i], 1, 2);
+        SwapEndian(&str[i], 1, sizeof(wchar_t));
 }
