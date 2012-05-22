@@ -72,5 +72,6 @@ void AchievementViewer::on_pushButton_2_clicked()
     opened_file->write((unsigned int)time.dwHighDateTime);
     opened_file->write((unsigned int)time.dwLowDateTime);
 
-    QMessageBox::information(this, "Success", "Successfully saved changes.");
+    QMessageBox::information(this, "Save Success", "All of your changes have been saved successfully.");
+    close();
 }

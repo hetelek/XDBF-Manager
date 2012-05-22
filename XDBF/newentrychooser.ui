@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>198</width>
-    <height>79</height>
+    <width>251</width>
+    <height>94</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,6 +34,9 @@
           <iconset resource="images.qrc">
            <normaloff>:/images/cancel.png</normaloff>:/images/cancel.png</iconset>
          </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -44,6 +47,9 @@
          <property name="icon">
           <iconset resource="images.qrc">
            <normaloff>:/images/continue.png</normaloff>:/images/continue.png</iconset>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
         </widget>
        </item>

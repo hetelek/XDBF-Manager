@@ -83,6 +83,7 @@ void SyncListDialog::on_pushButton_3_clicked()
     xdbf->write_sync_list(list);
 
     QMessageBox::information(this, "Updated Successfully", "The sync list has been updated successfully!", QMessageBox::Ok);
+    close();
 }
 
 void SyncListDialog::on_pushButton_4_clicked()

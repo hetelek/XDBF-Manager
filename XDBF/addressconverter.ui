@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>226</width>
-    <height>96</height>
+    <width>259</width>
+    <height>127</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,6 +70,9 @@
        <property name="icon">
         <iconset resource="images.qrc">
          <normaloff>:/images/convert.png</normaloff>:/images/convert.png</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
