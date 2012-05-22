@@ -45,20 +45,20 @@ void SwapEndianUnicode(wchar_t *str, int unicode_len)
         SwapEndian(&str[i], 1, 2);
 }
 
-struct tm* FILETIME_to_tm(FILETIME *pft)
+struct tm* FILETIMEToTm(FILETIME *pft)
 {
-    time_t nip_lick = FILETIME_to_time_t(pft);
+    time_t nip_lick = FILETIMEToTime_t(pft);
     return localtime(&nip_lick);
 }
 
-time_t FILETIME_to_time_t(FILETIME *pft)
+time_t FILETIMEToTime_t(FILETIME *pft)
 {
     long long ll; // 64 bit value
     ll = (((long long)(pft->dwHighDateTime)) << 32) + pft->dwLowDateTime;
     return (time_t)((ll - 116444736000000000) / 10000000);
 }
 
-std::string te_flag_to_string(TitleEntryFlag flag)
+std::string teFlagToString(TitleEntryFlag flag)
 {
     switch(flag)
     {
@@ -75,7 +75,7 @@ std::string te_flag_to_string(TitleEntryFlag flag)
     }
 }
 
-std::string Entry_ID_to_string(unsigned long long name)
+std::string EntryIDToString(unsigned long long name)
 {
     //stupid switches can't use ulonglong's
     if(name == SYNC_LIST)
@@ -157,7 +157,7 @@ std::string Entry_ID_to_string(unsigned long long name)
     return "";
 }
 
-FILETIME time_t_to_FILETIME(time_t unixTime)
+FILETIME time_tToFILETIME(time_t unixTime)
 {
     FILETIME time;
     long long ll; // 64 bit value

@@ -127,16 +127,16 @@ void MainWindow::loadEntries()
     {
         clear_items();
 
-        Entry *entries = xdbf->get_entries();
+        Entry *entries = xdbf->getEntries();
         if (entries == NULL)
             return;
-        Header *header = xdbf->get_header();
+        Header *header = xdbf->getHeader();
 
         clear_items();
 
-        for(unsigned int i = 0; i < header->entry_count; i++)
+        for(unsigned int i = 0; i < header->entryCount; i++)
         {
-            QString name = QString::fromStdString(Entry_ID_to_string(entries[i].identifier));
+            QString name = QString::fromStdString(EntryIDToString(entries[i].identifier));
             QTableWidgetItem *item = new QTableWidgetItem((name == "") ? "0x" + QString::number(entries[i].identifier, 16).toUpper() : name);
             item->setData(ObjectRole, QVariant::fromValue(&entries[i]));
 
@@ -149,7 +149,7 @@ void MainWindow::loadEntries()
             if(entries[i].type == ET_SETTING && entries[i].identifier != SYNC_LIST && entries[i].identifier != SYNC_DATA)
             {
                 Setting_Entry *entry = xdbf->getSettingEntry(&entries[i]);
-                setting_entry_name = " - " + QString::fromStdString(xdbf->get_setting_entry_name(entry));
+                setting_entry_name = " - " + QString::fromStdString(xdbf->getSettingEntryName(entry));
             }
             else if (entries[i].identifier == 0x8000 && entries[i].type == ET_STRING)
             {
@@ -175,16 +175,16 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     {
         if(e->identifier == SYNC_LIST || e->identifier == 1)
         {
-            Sync_List sl = xdbf->get_sync_list(e->type, e->identifier);
+            Sync_List sl = xdbf->getSyncList(e->type, e->identifier);
             SyncListDialog dialog(this, &sl, xdbf);
             dialog.exec();
         }
         else
         {
-            Sync_Data data = xdbf->get_sync_data(e->type, e->identifier);
-            QMessageBox::about(this, "Sync Data", "<html><center><h3>Sync Data</h3></center><hr /><br /><b>Next Sync Value: </b>" + QString::number(data.next_sync_id) +
-                               "<br /><b>Last Sync Value: </b>" + QString::number(data.last_sync_id) + "<br /><b>Last Synced Time: </b>" +
-                               QString::fromStdString(XDBF::FILETIME_to_string(&data.last_synced_time)) + "</html>");
+            Sync_Data data = xdbf->getSyncData(e->type, e->identifier);
+            QMessageBox::about(this, "Sync Data", "<html><center><h3>Sync Data</h3></center><hr /><br /><b>Next Sync Value: </b>" + QString::number(data.nextSyncId) +
+                               "<br /><b>Last Sync Value: </b>" + QString::number(data.lastSyncId) + "<br /><b>Last Synced Time: </b>" +
+                               QString::fromStdString(XDBF::FILETIME_to_string(&data.lastSyncedTime)) + "</html>");
         }
         return;
     }
@@ -217,14 +217,14 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     }
     else if (e->type == ET_IMAGE)
     {
-        unsigned char *img_data = (unsigned char*)xdbf->extract_entry(e);
+        unsigned char *img_data = (unsigned char*)xdbf->extractEntry(e);
         QImage img = QImage::fromData(img_data, e->length);
         ImageDialog im(this, &img);
         im.exec();
     }
     else if (e->type == ET_TITLE)
     {
-        Title_Entry *tent = xdbf->get_title_entry(e);
+        Title_Entry *tent = xdbf->getTitleEntry(e);
         if (tent == NULL)
             return;
         TitleInjectorDialog dialog(this, xdbf, tent);
@@ -233,25 +233,25 @@ void MainWindow::on_tableWidget_doubleClicked(const QModelIndex &index)
     }
     else if (e->type == ET_ACHIEVEMENT)
     {
-        Achievement_Entry *chiev = xdbf->get_achievement_entry(e);
-        Entry *entries = xdbf->get_entries();
+        Achievement_Entry *chiev = xdbf->getAchievementEntry(e);
+        Entry *entries = xdbf->getEntries();
         Entry *imageEntry = NULL;
 
-        for (int i = 0; i < xdbf->get_header()->entry_count; i++)
+        for (int i = 0; i < xdbf->getHeader()->entryCount; i++)
             if(entries[i].type == ET_IMAGE && entries[i].identifier == chiev->imageID )
                 imageEntry = &entries[i];
 
         AchievementViewer *dialog;
         if (imageEntry != NULL)
-            dialog = new AchievementViewer(this, chiev, xdbf->get_file(), QImage::fromData((unsigned char*)xdbf->extract_entry(imageEntry), imageEntry->length), e->address);
+            dialog = new AchievementViewer(this, chiev, xdbf->getFile(), QImage::fromData((unsigned char*)xdbf->extractEntry(imageEntry), imageEntry->length), e->address);
         else
-            dialog = new AchievementViewer(this, chiev, xdbf->get_file(), QImage(":/images/HiddenAchievement.png"), e->address);
+            dialog = new AchievementViewer(this, chiev, xdbf->getFile(), QImage(":/images/HiddenAchievement.png"), e->address);
 
         dialog->exec();
     }
     else if (e->type == ET_AVATAR_AWARD)
     {
-        Avatar_Award_Entry *award = xdbf->get_avatar_award_entry(e);
+        Avatar_Award_Entry *award = xdbf->getAvatarAwardEntry(e);
         AvatarAwardDialog dialog(this, award, xdbf);
         dialog.exec();
     }
@@ -316,7 +316,7 @@ void MainWindow::extractFiles(QList<QTableWidgetItem*> items)
 
         try
         {
-            char *data = xdbf->extract_entry(e);
+            char *data = xdbf->extractEntry(e);
             fwrite(data, e->length, sizeof(char), f);
             fclose(f);
         }

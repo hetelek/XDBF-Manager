@@ -37,22 +37,22 @@ class XDBF
 public:
     XDBF(string path);
     ~XDBF();
-    Entry* get_entries();
-    char* extract_entry(Entry *entry);
-    Entry* get_entry_by_id(long long identifier, int type);
-    Header* get_header();
-    FileIO *get_file();
+    Entry* getEntries();
+    char* extractEntry(Entry *entry);
+    Entry* getEntryById(long long identifier, int type);
+    Header* getHeader();
+    FileIO *getFile();
     void close();
-    static std::string get_setting_entry_name(Setting_Entry *s_entry);
+    static std::string getSettingEntryName(Setting_Entry *s_entry);
     Setting_Entry* getSettingEntry(Entry *entry);
-    Title_Entry* get_title_entry(Entry *entry);
-    Achievement_Entry* get_achievement_entry(Entry *entry);
-    Sync_List get_sync_list(int et_type, unsigned long long identifier = SYNC_LIST);
-    Sync_Data get_sync_data(int et_type, unsigned long long identifier = SYNC_LIST);
-    Sync_Entry* get_sync(int et_type, unsigned long long identifier = SYNC_LIST);
-    void update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus status, unsigned long long identifier = SYNC_LIST);
-    void write_sync_list(Sync_List *sl);
-    Avatar_Award_Entry* get_avatar_award_entry(Entry *entry);
+    Title_Entry* getTitleEntry(Entry *entry);
+    Achievement_Entry* getAchievementEntry(Entry *entry);
+    Sync_List getSyncList(int et_type, unsigned long long identifier = SYNC_LIST);
+    Sync_Data getSyncData(int et_type, unsigned long long identifier = SYNC_LIST);
+    Sync_Entry* getSync(int et_type, unsigned long long identifier = SYNC_LIST);
+    void updateSyncListEntry(Sync_Entry entry, int et_type, SyncEntryStatus status, unsigned long long identifier = SYNC_LIST);
+    void writeSyncList(Sync_List *sl);
+    Avatar_Award_Entry* getAvatarAwardEntry(Entry *entry);
     void writeEntry(Entry *entry, Achievement_Entry *chiev);
     void writeEntry(Title_Entry *entry);
     void writeEntry(Avatar_Award_Entry *e);
@@ -81,8 +81,8 @@ public:
 private:
     Header h[1];
     FreeMemoryTable freeMemTable;
-    FileIO *opened_file;
-    vector<Entry> *private_entries;
+    FileIO *openedFile;
+    vector<Entry> *privateEntries;
     bool reverse;
     string filePath;
     Entry* injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id);

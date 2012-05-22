@@ -9,13 +9,13 @@ SyncListDialog::SyncListDialog(QWidget *parent, Sync_List *_list, XDBF *_xdbf) :
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 
-    for(int i = 0; i < list->entry_count; i++)
+    for(int i = 0; i < list->entryCount; i++)
     {
-        QString name = QString::fromStdString(Entry_ID_to_string(list->entries->at(i).identifier));
+        QString name = QString::fromStdString(EntryIDToString(list->entries->at(i).identifier));
         QTableWidgetItem *lwi = new QTableWidgetItem((name == "") ?  "0x" + QString::number(list->entries->at(i).identifier, 16).toUpper() : name);
 
         lwi->setData(ObjectRole, QVariant::fromValue(&list->entries->at(i)));
-        if(list->entries->at(i).sync_id != 0)
+        if(list->entries->at(i).syncId != 0)
         {
             int row = ui->tableWidget_queueList->rowCount();
             ui->tableWidget_queueList->insertRow(row);
@@ -70,17 +70,17 @@ void SyncListDialog::on_pushButton_3_clicked()
     {
         QTableWidgetItem *item = ui->tableWidget_queueList->item(i, 0);
         Sync_Entry *e = item->data(ObjectRole).value<Sync_Entry*>();
-        e->sync_id = qlRowCount - i;
+        e->syncId = qlRowCount - i;
     }
 
     for(int i = 0; i < ui->tableWidget_syncList->rowCount(); i++)
     {
         QTableWidgetItem *item = ui->tableWidget_syncList->item(i, 0);
         Sync_Entry *e = item->data(ObjectRole).value<Sync_Entry*>();
-        e->sync_id = 0;
+        e->syncId = 0;
     }
 
-    xdbf->write_sync_list(list);
+    xdbf->writeSyncList(list);
 
     QMessageBox::information(this, "Updated Successfully", "The sync list has been updated successfully!", QMessageBox::Ok);
     close();

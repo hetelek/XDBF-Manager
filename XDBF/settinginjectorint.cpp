@@ -49,9 +49,9 @@ SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type, S
 
         // add the setting id strings to the combo box
         for (int i = 0; i < 29; i++)
-            if (xdbf->get_entry_by_id(knownIDs[i], ET_SETTING) == NULL)
+            if (xdbf->getEntryById(knownIDs[i], ET_SETTING) == NULL)
             {
-                ui->comboBox->addItem(QString::fromStdString(Entry_ID_to_string(knownIDs[i])));
+                ui->comboBox->addItem(QString::fromStdString(EntryIDToString(knownIDs[i])));
                 cmbxIDs.push_back(knownIDs[i]);
             }
 
@@ -161,7 +161,7 @@ SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type, S
             case SET_DATETIME:
                 ui->label->setText("Date Time: ");
                 dte = new QDateTimeEdit(this);
-                dte->setDateTime(QDateTime::fromTime_t(FILETIME_to_time_t(&entry->time_stamp)));
+                dte->setDateTime(QDateTime::fromTime_t(FILETIMEToTime_t(&entry->time_stamp)));
                 ui->gridLayout->addWidget(dte, 0, 1);
                 setWindowTitle("Date Time Setting Entry");
                 break;
@@ -233,7 +233,7 @@ void SettingInjectorInt::on_pushButton_clicked()
                 break;
             }
             case SET_DATETIME:
-                entry.time_stamp = time_t_to_FILETIME(dte->dateTime().toTime_t());
+                entry.time_stamp = time_tToFILETIME(dte->dateTime().toTime_t());
                 msgBoxText = "date time";
                 break;
         }
@@ -282,7 +282,7 @@ void SettingInjectorInt::on_pushButton_clicked()
                 entry->double_data = dSpinBox->value();
                 break;
             case SET_DATETIME:
-                entry->time_stamp = time_t_to_FILETIME(dte->dateTime().toTime_t());
+                entry->time_stamp = time_tToFILETIME(dte->dateTime().toTime_t());
                 break;
             case SET_UNICODE:
                 wstring *temp = new wstring(lineEditP->text().toStdWString());

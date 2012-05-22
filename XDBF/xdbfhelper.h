@@ -103,7 +103,7 @@ typedef enum
 
 typedef struct
 {
-    unsigned long long identifier, sync_id;
+    unsigned long long identifier, syncId;
 } Sync_Entry;
 
 typedef struct
@@ -123,7 +123,7 @@ typedef struct
 
 struct Header
 {
-    unsigned int magic, version, entry_table_length, entry_count, free_memory_table_length, free_memory_table_entry_count;
+    unsigned int magic, version, entryTableLength, entryCount, freeMemoryTableLength, freeMemoryTableEntryCount;
 };
 
 struct FreeMemoryEntry
@@ -197,16 +197,16 @@ typedef struct
 
 typedef struct
 {
-    Entry *data_entry;
-    unsigned long long next_sync_id, last_sync_id;
-    FILETIME last_synced_time;
+    Entry *dataEntry;
+    unsigned long long nextSyncId, lastSyncId;
+    FILETIME lastSyncedTime;
 } Sync_Data;
 
 typedef struct
 {
-    Sync_Data sync_data;
-    Entry *list_entry;
-    int entry_count;
+    Sync_Data syncData;
+    Entry *listEntry;
+    int entryCount;
     vector<Sync_Entry> *entries;
 } Sync_List;
 
@@ -246,11 +246,11 @@ void SwapEndian(unsigned int *i);
 void SwapEndian(unsigned long *l);
 void SwapEndian(unsigned long long *ll);
 void SwapEndianUnicode(wchar_t *str, int unicode_len);
-std::string te_flag_to_string(TitleEntryFlag flag);
-struct tm* FILETIME_to_tm(FILETIME *pft);
-std::string Entry_ID_to_string(unsigned long long name);
-time_t FILETIME_to_time_t(FILETIME *pft);
-FILETIME time_t_to_FILETIME(time_t unixTime);
+std::string teFlagToString(TitleEntryFlag flag);
+struct tm* FILETIMEToTm(FILETIME *pft);
+std::string EntryIDToString(unsigned long long name);
+time_t FILETIMEToTime_t(FILETIME *pft);
+FILETIME time_tToFILETIME(time_t unixTime);
 std::string getClothingType(Avatar_Award_Entry *item);
 std::string guid(Avatar_Award_Entry *item);
 

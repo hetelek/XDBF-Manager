@@ -32,7 +32,7 @@ AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, 
     ui->lockedDescLbl->setText("<b>Locked Description: </b>" + lockedQ);
     ui->unlockedDescLbl->setText("<b>Unlocked Description: </b>" + unlockedQ);
 
-    QDateTime unlockedTime = QDateTime::fromTime_t(FILETIME_to_time_t(&chiev->unlockedTime));
+    QDateTime unlockedTime = QDateTime::fromTime_t(FILETIMEToTime_t(&chiev->unlockedTime));
     ui->unlockedTimeDte->setDateTime(unlockedTime);
 
     int state = (chiev->flags >> 16) & 3;
@@ -66,7 +66,7 @@ void AchievementViewer::on_pushButton_2_clicked()
     opened_file->setPosition(entryAddr + 0x10);
     opened_file->write(toWrite);
 
-    FILETIME time = time_t_to_FILETIME(ui->unlockedTimeDte->dateTime().toTime_t());
+    FILETIME time = time_tToFILETIME(ui->unlockedTimeDte->dateTime().toTime_t());
 
     opened_file->setPosition(entryAddr + 0x14);
     opened_file->write((unsigned int)time.dwHighDateTime);

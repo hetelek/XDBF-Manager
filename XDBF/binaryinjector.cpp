@@ -45,9 +45,9 @@ BinaryInjector::BinaryInjector(XDBF *xdbf_pv, QWidget *parent) :
 
     // add the setting id strings to the combo box
     for (int i = 0; i < 29; i++)
-        if (xdbf->get_entry_by_id(knownIDs[i], ET_SETTING) == NULL)
+        if (xdbf->getEntryById(knownIDs[i], ET_SETTING) == NULL)
         {
-            ui->comboBox->addItem(QString::fromStdString(Entry_ID_to_string(knownIDs[i])));
+            ui->comboBox->addItem(QString::fromStdString(EntryIDToString(knownIDs[i])));
         }
 
     setFixedSize(size());

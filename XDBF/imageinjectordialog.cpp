@@ -16,9 +16,9 @@ ImageInjectorDialog::ImageInjectorDialog(QWidget *parent, XDBF* xdbf) : QDialog(
 
     // add the setting id strings to the combo box
     for (int i = 0; i < 2; i++)
-        if (xdbf->get_entry_by_id(knownIDs[i], ET_SETTING) == NULL)
+        if (xdbf->getEntryById(knownIDs[i], ET_SETTING) == NULL)
         {
-            ui->comboBox->addItem(QString::fromStdString(Entry_ID_to_string(knownIDs[i])));
+            ui->comboBox->addItem(QString::fromStdString(EntryIDToString(knownIDs[i])));
             cmbxIDs.push_back(knownIDs[i]);
         }
 }
@@ -42,7 +42,7 @@ void ImageInjectorDialog::on_pushButton_2_clicked()
     // read the file's magic
     unsigned int magic = file.readUInt32();
 
-    // check for ‰PNG magic
+    // check for PNG magic
     if (magic != 0x89504E47)
     {
         QMessageBox::warning(this, "Invalid Image", "The file selected was not a PNG file.");

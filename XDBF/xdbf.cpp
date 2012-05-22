@@ -3,52 +3,52 @@
 
 XDBF::XDBF(string path) : filePath(path)
 {
-    opened_file = new FileIO(path);
+    openedFile = new FileIO(path);
 
-    if(opened_file == NULL)
+    if(openedFile == NULL)
     {
         //File could not be opened
         throw "File could not be opened.";
     }
 
-    opened_file->setPosition(0);
-    h->magic = opened_file->readUInt32();
-    h->version = opened_file->readUInt32();
-    h->entry_table_length = opened_file->readUInt32();
-    h->entry_count = opened_file->readUInt32();
-    h->free_memory_table_length = opened_file->readUInt32();
-    h->free_memory_table_entry_count = opened_file->readUInt32();
+    openedFile->setPosition(0);
+    h->magic = openedFile->readUInt32();
+    h->version = openedFile->readUInt32();
+    h->entryTableLength = openedFile->readUInt32();
+    h->entryCount = openedFile->readUInt32();
+    h->freeMemoryTableLength = openedFile->readUInt32();
+    h->freeMemoryTableEntryCount = openedFile->readUInt32();
 
     if(h->magic != 0x58444246)
     {
         throw "Invalid file. (MAGIC)";
     }
 
-    private_entries = new vector<Entry>();
-    for(unsigned int i = 0; i < h->entry_count; i++)
+    privateEntries = new vector<Entry>();
+    for(unsigned int i = 0; i < h->entryCount; i++)
     {
         Entry temp;
-        temp.type = opened_file->readUInt16();
-        temp.identifier = opened_file->readUInt64();
-        temp.address = opened_file->readUInt32();
-        temp.length = opened_file->readUInt32();
+        temp.type = openedFile->readUInt16();
+        temp.identifier = openedFile->readUInt64();
+        temp.address = openedFile->readUInt32();
+        temp.length = openedFile->readUInt32();
 
         temp.address = get_offset(temp.address);
-        private_entries->push_back(temp);
+        privateEntries->push_back(temp);
     }
 
-    freeMemTable.entryCount = h->free_memory_table_entry_count;
-    freeMemTable.tableLength = h->free_memory_table_length;
+    freeMemTable.entryCount = h->freeMemoryTableEntryCount;
+    freeMemTable.tableLength = h->freeMemoryTableLength;
 
-    int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
-    opened_file->setPosition(freeMemoryOffset);
+    int freeMemoryOffset = (h->entryTableLength * 0x12) + 0x18;
+    openedFile->setPosition(freeMemoryOffset);
 
     freeMemTable.entries = new vector<FreeMemoryEntry>();
     for(int i = 0; i < freeMemTable.entryCount; i++)
     {
         FreeMemoryEntry entry;
-        entry.offsetSpecifier = opened_file->readUInt32();
-        entry.length = opened_file->readUInt32();
+        entry.offsetSpecifier = openedFile->readUInt32();
+        entry.length = openedFile->readUInt32();
         freeMemTable.entries->push_back(entry);
     }
 
@@ -57,13 +57,13 @@ XDBF::XDBF(string path) : filePath(path)
 
 XDBF::~XDBF()
 {
-    delete opened_file;
+    delete openedFile;
 }
 
-Entry* XDBF::get_entry_by_id(long long identifier, int type)
+Entry* XDBF::getEntryById(long long identifier, int type)
 {
-    Entry *entries = get_entries();
-    for(unsigned int i = 0; i < get_header()->entry_count; i++)
+    Entry *entries = getEntries();
+    for(unsigned int i = 0; i < getHeader()->entryCount; i++)
         if(entries[i].identifier == identifier && entries[i].type == type)
         {
             return &entries[i];
@@ -72,56 +72,56 @@ Entry* XDBF::get_entry_by_id(long long identifier, int type)
     return NULL;
 }
 
-char* XDBF::extract_entry(Entry *entry)
+char* XDBF::extractEntry(Entry *entry)
 {
-    if(opened_file == NULL)
+    if(openedFile == NULL)
         throw "File has been closed/never opened.";
 
-    opened_file->setPosition(entry->address);
+    openedFile->setPosition(entry->address);
     char *data = new char[entry->length];
-    opened_file->read(data, entry->length);
+    openedFile->read(data, entry->length);
 
     return data;
 }
 
-Entry* XDBF::get_entries()
+Entry* XDBF::getEntries()
 {
-    if (private_entries->size() == 0)
+    if (privateEntries->size() == 0)
         return NULL;
-    return &private_entries->at(0);
+    return &privateEntries->at(0);
 }
 
-Header* XDBF::get_header()
+Header* XDBF::getHeader()
 {
     return h;
 }
 
 void XDBF::close()
 {
-    if(opened_file == NULL)
+    if(openedFile == NULL)
         return;
 
-    opened_file->close();
-    opened_file = NULL;
+    openedFile->close();
+    openedFile = NULL;
 }
 
 int XDBF::get_offset(unsigned int offset_specifier)
 {
-    int entry_table_size = (h->entry_table_length * 18);
-    int free_space_size = (h->free_memory_table_length * 8);
+    int entry_table_size = (h->entryTableLength * 18);
+    int free_space_size = (h->freeMemoryTableLength * 8);
     return ((entry_table_size + free_space_size) + 24) + offset_specifier;
 }
 
 int XDBF::getFakeOffset(unsigned int realAddress)
 {
-    int entry_table_size = (h->entry_table_length * 18);
-    int free_space_size = (h->free_memory_table_length * 8);
+    int entry_table_size = (h->entryTableLength * 18);
+    int free_space_size = (h->freeMemoryTableLength * 8);
     return (realAddress - ((entry_table_size + free_space_size) + 24));
 }
 
-FileIO *XDBF::get_file()
+FileIO *XDBF::getFile()
 {
-    return opened_file;
+    return openedFile;
 }
 
 Setting_Entry* XDBF::getSettingEntry(Entry *entry)
@@ -131,9 +131,9 @@ Setting_Entry* XDBF::getSettingEntry(Entry *entry)
 
     Setting_Entry *s_entry = new Setting_Entry;
     s_entry->entry = entry;
-    opened_file->setPosition(entry->address + 0x8);
-    opened_file->read(&s_entry->type, 1);
-    opened_file->setPosition(entry->address + 0x10);
+    openedFile->setPosition(entry->address + 0x8);
+    openedFile->read(&s_entry->type, 1);
+    openedFile->setPosition(entry->address + 0x10);
 
     wstring *str;
     switch (s_entry->type)
@@ -143,40 +143,40 @@ Setting_Entry* XDBF::getSettingEntry(Entry *entry)
             break;
 
         case SET_INT32:
-            s_entry->i32_data = opened_file->readInt32();
+            s_entry->i32_data = openedFile->readInt32();
             break;
 
         case SET_INT64:
-            s_entry->i64_data = opened_file->readInt64();
+            s_entry->i64_data = openedFile->readInt64();
             break;
 
         case SET_DOUBLE:
-            s_entry->double_data = opened_file->readDouble();
+            s_entry->double_data = openedFile->readDouble();
             break;
 
         case SET_UNICODE:
-            s_entry->unicode_string.str_len_in_bytes = (unsigned long)opened_file->readUInt32();
-            opened_file->setPosition(entry->address + 0x18);
-            str = new wstring(opened_file->readUnicodeString());
+            s_entry->unicode_string.str_len_in_bytes = (unsigned long)openedFile->readUInt32();
+            openedFile->setPosition(entry->address + 0x18);
+            str = new wstring(openedFile->readUnicodeString());
             s_entry->unicode_string.str = str;
             break;
 
         case SET_FLOAT:
-            s_entry->float_data = opened_file->readFloat();
+            s_entry->float_data = openedFile->readFloat();
             break;
 
         case SET_BINARY:
             unsigned long bin_size;
-            bin_size = opened_file->readUInt32();
+            bin_size = openedFile->readUInt32();
             s_entry->binary.size = bin_size;
             s_entry->binary.data = new char[bin_size];
-            opened_file->setPosition(entry->address + 0x14);
-            opened_file->read(s_entry->binary.data, bin_size);
+            openedFile->setPosition(entry->address + 0x14);
+            openedFile->read(s_entry->binary.data, bin_size);
             break;
 
         case SET_DATETIME:
-            s_entry->time_stamp.dwHighDateTime = opened_file->readUInt32();
-            s_entry->time_stamp.dwLowDateTime = opened_file->readUInt32();
+            s_entry->time_stamp.dwHighDateTime = openedFile->readUInt32();
+            s_entry->time_stamp.dwLowDateTime = openedFile->readUInt32();
             break;
 
         case SET_NULL:
@@ -193,11 +193,11 @@ std::wstring XDBF::getStringEntry(Entry *e)
     if(e->type != ET_STRING)
         throw "Given entry is not a string entry.";
 
-    opened_file->setPosition(e->address);
-    return opened_file->readUnicodeString();
+    openedFile->setPosition(e->address);
+    return openedFile->readUnicodeString();
 }
 
-std::string XDBF::get_setting_entry_name(Setting_Entry *s_entry)
+std::string XDBF::getSettingEntryName(Setting_Entry *s_entry)
 {
     if(s_entry->type == 0xFF)
         return "NULL";
@@ -208,87 +208,87 @@ std::string XDBF::get_setting_entry_name(Setting_Entry *s_entry)
     return friendly_setting_types[s_entry->type];
 }
 
-Title_Entry* XDBF::get_title_entry(Entry *entry)
+Title_Entry* XDBF::getTitleEntry(Entry *entry)
 {
     if (entry->type != ET_TITLE || entry->identifier == 0x200000000 || entry->identifier == 0x100000000)
         return NULL;
 
     Title_Entry *t_entry = new Title_Entry;
     t_entry->entry = entry;
-    opened_file->setPosition(entry->address);
-    t_entry->titleID = opened_file->readUInt32();
-    t_entry->achievementCount = opened_file->readInt32();
-    t_entry->achievementUnlockedCount = opened_file->readInt32();
-    t_entry->gamerscoreUnlocked = opened_file->readUInt32();
-    t_entry->totalGamerscore = opened_file->readUInt32();
-    opened_file->read(&t_entry->unknown, 8);
-    t_entry->flags = opened_file->readUInt32();
-    t_entry->lastPlayed.dwHighDateTime = opened_file->readUInt32();
-    t_entry->lastPlayed.dwLowDateTime = opened_file->readUInt32();
+    openedFile->setPosition(entry->address);
+    t_entry->titleID = openedFile->readUInt32();
+    t_entry->achievementCount = openedFile->readInt32();
+    t_entry->achievementUnlockedCount = openedFile->readInt32();
+    t_entry->gamerscoreUnlocked = openedFile->readUInt32();
+    t_entry->totalGamerscore = openedFile->readUInt32();
+    openedFile->read(&t_entry->unknown, 8);
+    t_entry->flags = openedFile->readUInt32();
+    t_entry->lastPlayed.dwHighDateTime = openedFile->readUInt32();
+    t_entry->lastPlayed.dwLowDateTime = openedFile->readUInt32();
 
-    opened_file->setPosition(entry->address + 0x28);
-    wstring *a = new wstring(opened_file->readUnicodeString());
+    openedFile->setPosition(entry->address + 0x28);
+    wstring *a = new wstring(openedFile->readUnicodeString());
     t_entry->gameName = a;
 
     return t_entry;
 }
 
-Achievement_Entry* XDBF::get_achievement_entry(Entry *entry)
+Achievement_Entry* XDBF::getAchievementEntry(Entry *entry)
 {
     if (entry->type != ET_ACHIEVEMENT)
         return NULL;
 
     Achievement_Entry *chiev = new Achievement_Entry;
 
-    opened_file->setPosition(entry->address);
-    chiev->size = opened_file->readUInt32();
-    chiev->id = opened_file->readUInt32();
-    chiev->imageID = opened_file->readUInt32();
-    chiev->gamerscore = opened_file->readUInt32();
-    chiev->flags = opened_file->readUInt32();
-    chiev->unlockedTime.dwHighDateTime = opened_file->readUInt32();
-    chiev->unlockedTime.dwLowDateTime = opened_file->readUInt32();
+    openedFile->setPosition(entry->address);
+    chiev->size = openedFile->readUInt32();
+    chiev->id = openedFile->readUInt32();
+    chiev->imageID = openedFile->readUInt32();
+    chiev->gamerscore = openedFile->readUInt32();
+    chiev->flags = openedFile->readUInt32();
+    chiev->unlockedTime.dwHighDateTime = openedFile->readUInt32();
+    chiev->unlockedTime.dwLowDateTime = openedFile->readUInt32();
 
-    opened_file->setPosition(entry->address + 0x1C);
-    wstring *str1 = new wstring(opened_file->readUnicodeString());
+    openedFile->setPosition(entry->address + 0x1C);
+    wstring *str1 = new wstring(openedFile->readUnicodeString());
     chiev->name = str1;
     int str1Size = WSTRING_BYTES(str1->size());
 
-    opened_file->setPosition(entry->address + 0x1C + str1Size);
-    wstring *str2 = new wstring(opened_file->readUnicodeString());
+    openedFile->setPosition(entry->address + 0x1C + str1Size);
+    wstring *str2 = new wstring(openedFile->readUnicodeString());
     chiev->unlockedDescription = str2;
     int str2Size = WSTRING_BYTES(str2->size());
 
-    opened_file->setPosition(entry->address + 0x1C + str1Size + str2Size);
-    wstring *str3 = new wstring(opened_file->readUnicodeString());
+    openedFile->setPosition(entry->address + 0x1C + str1Size + str2Size);
+    wstring *str3 = new wstring(openedFile->readUnicodeString());
     chiev->lockedDescription = str3;
 
     return chiev;
 }
 
-Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
+Sync_List XDBF::getSyncList(int et_type, unsigned long long identifier)
 {
     Sync_List list = { 0 };
     // make sure the entry exists
-    Entry *syncListTarget = get_entry_by_id(identifier, et_type);
+    Entry *syncListTarget = getEntryById(identifier, et_type);
     if(syncListTarget == NULL)
         return list;
 
     int syncsInList = syncListTarget->length / 0x10;
 
     // initialize 'list'
-    list.sync_data = get_sync_data(et_type, identifier * 2);
-    list.list_entry = syncListTarget;
-    list.entry_count = syncsInList;
+    list.syncData = getSyncData(et_type, identifier * 2);
+    list.listEntry = syncListTarget;
+    list.entryCount = syncsInList;
     list.entries = new vector<Sync_Entry>();
     list.entries = new vector<Sync_Entry>(syncsInList);
 
     // read all the entries in the sync list
-    opened_file->setPosition(syncListTarget->address);
+    openedFile->setPosition(syncListTarget->address);
     for(int i = 0; i < syncsInList; i++)
     {
-        list.entries->at(i).identifier = opened_file->readUInt64();
-        list.entries->at(i).sync_id = opened_file->readUInt64();
+        list.entries->at(i).identifier = openedFile->readUInt64();
+        list.entries->at(i).syncId = openedFile->readUInt64();
     }
 
     return list;
@@ -296,23 +296,23 @@ Sync_List XDBF::get_sync_list(int et_type, unsigned long long identifier)
 
 std::string XDBF::FILETIME_to_string(FILETIME *pft)
 {
-    struct tm *timeinfo = FILETIME_to_tm(pft);
+    struct tm *timeinfo = FILETIMEToTm(pft);
     if (timeinfo == NULL)
         return "<i>N/A</i>";
 
     return string(asctime(timeinfo));
 }
 
-void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus status, unsigned long long identifier)
+void XDBF::updateSyncListEntry(Sync_Entry entry, int et_type, SyncEntryStatus status, unsigned long long identifier)
 {
     // check if status is already requested status
-    if(entry.sync_id != 0 && status == Enqueue)
+    if(entry.syncId != 0 && status == Enqueue)
         return;
-    else if(entry.sync_id == 0 && status == Dequeue)
+    else if(entry.syncId == 0 && status == Dequeue)
         return;
 
     // get the sync list
-    Sync_List list = get_sync_list(et_type, identifier);
+    Sync_List list = getSyncList(et_type, identifier);
 
     bool found = false;
     vector<Sync_Entry> entries;
@@ -321,12 +321,12 @@ void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus
     {
         int highestSyncId = 0;
         int highestSyncIdIndex = 0;
-        for(int i = 0; i < list.entry_count; i++)
+        for(int i = 0; i < list.entryCount; i++)
         {
-            if(list.entries->at(i).sync_id > highestSyncId)
+            if(list.entries->at(i).syncId > highestSyncId)
             {
                 // update the highest sync id, for sorting later
-                highestSyncId = list.entries->at(i).sync_id;
+                highestSyncId = list.entries->at(i).syncId;
                 highestSyncIdIndex = i;
             }
 
@@ -346,26 +346,26 @@ void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus
             throw "Could not find given Sync List Entry.";
 
         // update the sync ID for the one we are writing
-        entry.sync_id = highestSyncId + 1;
+        entry.syncId = highestSyncId + 1;
 
         // insert the entry at the end of the QUEUED list
         entries.insert(entries.begin() + (highestSyncIdIndex - 1), 1, entry);
 
         // write all the entries
-        opened_file->setPosition(list.list_entry->address);
-        for(int i = 0; i < list.entry_count; i++)
+        openedFile->setPosition(list.listEntry->address);
+        for(int i = 0; i < list.entryCount; i++)
         {
-            opened_file->write(entries.at(i).identifier);
-            opened_file->write(entries.at(i).sync_id);
+            openedFile->write(entries.at(i).identifier);
+            openedFile->write(entries.at(i).syncId);
         }
     }
     else if(status == Dequeue)
     {
-        for(int i = 0; i < list.entry_count; i++)
+        for(int i = 0; i < list.entryCount; i++)
             if(memcmp(&entry, &list.entries->at(i), sizeof(entry)) == 0)
             {
                 // make the requested entry's sync ID 0, so it dequeues it
-                list.entries->at(i).sync_id = 0;
+                list.entries->at(i).syncId = 0;
                 found = true;
             }
 
@@ -373,16 +373,16 @@ void XDBF::update_sync_list_entry(Sync_Entry entry, int et_type, SyncEntryStatus
             throw "Could not find given Sync List Entry.";
 
         // write the new sync list
-        write_sync_list(&list);
+        writeSyncList(&list);
     }
 }
 
-void XDBF::write_sync_list(Sync_List *sl)
+void XDBF::writeSyncList(Sync_List *sl)
 {
     // check size
-    Entry *entr1 = sl->list_entry;
+    Entry *entr1 = sl->listEntry;
 
-    int newSize = (sl->entry_count * 0x10);
+    int newSize = (sl->entryCount * 0x10);
     int diff = 0;
     if(newSize != entr1->length)
         diff = entr1->length - newSize;
@@ -390,15 +390,15 @@ void XDBF::write_sync_list(Sync_List *sl)
     if(diff < 0)
     {
         ffree(entr1->address, entr1->length);
-        sl->list_entry->address = fmalloc(newSize);
+        sl->listEntry->address = fmalloc(newSize);
     }
 
     vector<Sync_Entry> queuedEntries, nonqueuedEntries;
 
     // sort entries by queued, and not queued
-    for(int i = 0; i < sl->entry_count; i++)
+    for(int i = 0; i < sl->entryCount; i++)
     {
-        if(sl->entries->at(i).sync_id != 0)
+        if(sl->entries->at(i).syncId != 0)
             queuedEntries.push_back(sl->entries->at(i));
         else
             nonqueuedEntries.push_back(sl->entries->at(i));
@@ -407,60 +407,60 @@ void XDBF::write_sync_list(Sync_List *sl)
     // write non-queued entries
     for(int i = 0; i < nonqueuedEntries.size(); i++)
     {
-        opened_file->setPosition(entr1->address + (0x10 * i));
-        opened_file->write(nonqueuedEntries.at(i).identifier);
-        opened_file->write(nonqueuedEntries.at(i).sync_id);
+        openedFile->setPosition(entr1->address + (0x10 * i));
+        openedFile->write(nonqueuedEntries.at(i).identifier);
+        openedFile->write(nonqueuedEntries.at(i).syncId);
     }
 
     // write queued entries
     int startingPos = nonqueuedEntries.size() * 0x10;
     for(int i = 0; i < queuedEntries.size(); i++)
     {
-        opened_file->setPosition(entr1->address + (startingPos + (0x10 * i)));
-        opened_file->write(queuedEntries.at(i).identifier);
-        opened_file->write(queuedEntries.at(i).sync_id);
+        openedFile->setPosition(entr1->address + (startingPos + (0x10 * i)));
+        openedFile->write(queuedEntries.at(i).identifier);
+        openedFile->write(queuedEntries.at(i).syncId);
     }
 
     // update corresponding sync data entry
     unsigned long long next = queuedEntries.size() + 1;
-    sl->sync_data.next_sync_id = next;
-    opened_file->setPosition(sl->sync_data.data_entry->address);
-    opened_file->write(next);
+    sl->syncData.nextSyncId = next;
+    openedFile->setPosition(sl->syncData.dataEntry->address);
+    openedFile->write(next);
 
     if(diff > 0)
-        ffree(sl->list_entry->address, newSize);
+        ffree(sl->listEntry->address, newSize);
 
     // update the entry size
-    sl->list_entry->length = newSize;
-    writeEntryTable(opened_file);
+    sl->listEntry->length = newSize;
+    writeEntryTable(openedFile);
 }
 
-Sync_Data XDBF::get_sync_data(int et_type, unsigned long long identifier)
+Sync_Data XDBF::getSyncData(int et_type, unsigned long long identifier)
 {
     // make sure there is a corresponding sync data
-    Entry *target = get_entry_by_id(identifier, et_type);
+    Entry *target = getEntryById(identifier, et_type);
     if(target == NULL)
         throw "Sync data could not be found with given entry type.";
 
     Sync_Data data;
-    data.data_entry = target;
+    data.dataEntry = target;
 
     // read the sync data's info
-    opened_file->setPosition(target->address);
+    openedFile->setPosition(target->address);
 
-    data.next_sync_id = opened_file->readUInt64();
-    data.last_sync_id = opened_file->readUInt64();
-    data.last_synced_time.dwHighDateTime = opened_file->readUInt32();
-    data.last_synced_time.dwLowDateTime = opened_file->readUInt32();
+    data.nextSyncId = openedFile->readUInt64();
+    data.lastSyncId = openedFile->readUInt64();
+    data.lastSyncedTime.dwHighDateTime = openedFile->readUInt32();
+    data.lastSyncedTime.dwLowDateTime = openedFile->readUInt32();
 
     return data;
 }
 
-Sync_Entry* XDBF::get_sync(int et_type, unsigned long long identifier)
+Sync_Entry* XDBF::getSync(int et_type, unsigned long long identifier)
 {
-    Sync_List syncs = get_sync_list(et_type, identifier);
+    Sync_List syncs = getSyncList(et_type, identifier);
 
-    for (int i = 0; i < syncs.entry_count; i++)
+    for (int i = 0; i < syncs.entryCount; i++)
         if (syncs.entries->at(i).identifier == identifier)
                 return &(syncs.entries->at(i));
 
@@ -477,41 +477,41 @@ void XDBF::writeEntry(Entry *entry, Achievement_Entry *chiev)
     SwapEndian(&temp.gamerscore);
     SwapEndian((unsigned long long*)&temp.unlockedTime);
 
-    opened_file->setPosition(entry->address);
-    opened_file->write(&temp, 0x1C);
+    openedFile->setPosition(entry->address);
+    openedFile->write(&temp, 0x1C);
 
-    update_sync_list_entry(*get_sync(ET_ACHIEVEMENT, entry->address), ET_ACHIEVEMENT, Enqueue);
+    updateSyncListEntry(*getSync(ET_ACHIEVEMENT, entry->address), ET_ACHIEVEMENT, Enqueue);
 }
 
-Avatar_Award_Entry* XDBF::get_avatar_award_entry(Entry *entry)
+Avatar_Award_Entry* XDBF::getAvatarAwardEntry(Entry *entry)
 {
     Avatar_Award_Entry *entryAA = new Avatar_Award_Entry;
     entryAA->entry = *entry;
-    opened_file->setPosition(entry->address);
+    openedFile->setPosition(entry->address);
 
-    entryAA->size = opened_file->readUInt32();
-    entryAA->clothingType = opened_file->readUInt32();
-    entryAA->flags64 = opened_file->readUInt64();
-    entryAA->titleID = opened_file->readUInt32();
-    entryAA->imageID = opened_file->readUInt32();
-    entryAA->flags32 = opened_file->readUInt32();
-    entryAA->unlockTime.dwHighDateTime = opened_file->readUInt32();
-    entryAA->unlockTime.dwLowDateTime = opened_file->readUInt32();
-    entryAA->unknown[0] = opened_file->readUInt32();
-    entryAA->unknown[3] = opened_file->readUInt32();
+    entryAA->size = openedFile->readUInt32();
+    entryAA->clothingType = openedFile->readUInt32();
+    entryAA->flags64 = openedFile->readUInt64();
+    entryAA->titleID = openedFile->readUInt32();
+    entryAA->imageID = openedFile->readUInt32();
+    entryAA->flags32 = openedFile->readUInt32();
+    entryAA->unlockTime.dwHighDateTime = openedFile->readUInt32();
+    entryAA->unlockTime.dwLowDateTime = openedFile->readUInt32();
+    entryAA->unknown[0] = openedFile->readUInt32();
+    entryAA->unknown[3] = openedFile->readUInt32();
 
-    opened_file->setPosition(entry->address + 0x2C);
-    wstring *str1 = new wstring(opened_file->readUnicodeString());
+    openedFile->setPosition(entry->address + 0x2C);
+    wstring *str1 = new wstring(openedFile->readUnicodeString());
     entryAA->name = str1;
     int str1Size = WSTRING_BYTES(str1->size());
 
-    opened_file->setPosition(entry->address + 0x2C + str1Size);
-    wstring *str2 = new wstring(opened_file->readUnicodeString());
+    openedFile->setPosition(entry->address + 0x2C + str1Size);
+    wstring *str2 = new wstring(openedFile->readUnicodeString());
     entryAA->unlockedDescription = str2;
     int str2Size = WSTRING_BYTES(str2->size());
 
-    opened_file->setPosition(entry->address + 0x2C + str1Size + str2Size);
-    wstring *str3 = new wstring(opened_file->readUnicodeString());
+    openedFile->setPosition(entry->address + 0x2C + str1Size + str2Size);
+    wstring *str3 = new wstring(openedFile->readUnicodeString());
     entryAA->lockedDescription = str3;
 
     return entryAA;
@@ -519,15 +519,15 @@ Avatar_Award_Entry* XDBF::get_avatar_award_entry(Entry *entry)
 
 void XDBF::writeEntry(Avatar_Award_Entry *entry)
 {
-    opened_file->setPosition(entry->entry.address);
-    opened_file->write(entry->size);
-    opened_file->write(entry->clothingType);
-    opened_file->write(entry->flags64);
-    opened_file->write(entry->titleID);
-    opened_file->write(entry->imageID);
-    opened_file->write(entry->flags32);
-    opened_file->write((unsigned int)entry->unlockTime.dwHighDateTime);
-    opened_file->write((unsigned int)entry->unlockTime.dwLowDateTime);
+    openedFile->setPosition(entry->entry.address);
+    openedFile->write(entry->size);
+    openedFile->write(entry->clothingType);
+    openedFile->write(entry->flags64);
+    openedFile->write(entry->titleID);
+    openedFile->write(entry->imageID);
+    openedFile->write(entry->flags32);
+    openedFile->write((unsigned int)entry->unlockTime.dwHighDateTime);
+    openedFile->write((unsigned int)entry->unlockTime.dwLowDateTime);
 }
 
 Entry* XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned int dataLen, unsigned long long id)
@@ -541,31 +541,31 @@ Entry* XDBF::injectEntry_private(unsigned int type, char *entryData, unsigned in
     {
         Sync_Entry entry;
         entry.identifier = id;
-        entry.sync_id = 1;
-        Sync_List sl = get_sync_list(type, (type == ET_AVATAR_AWARD) ? 1 : SYNC_LIST);
+        entry.syncId = 1;
+        Sync_List sl = getSyncList(type, (type == ET_AVATAR_AWARD) ? 1 : SYNC_LIST);
         sl.entries->push_back(entry);
-        sl.entry_count++;
-        write_sync_list(&sl);
+        sl.entryCount++;
+        writeSyncList(&sl);
     }
 
     // update entry count
-    h->entry_count++;
-    opened_file->setPosition(0xC);
-    opened_file->write(h->entry_count);
+    h->entryCount++;
+    openedFile->setPosition(0xC);
+    openedFile->write(h->entryCount);
 
     // append entry to file
     long addr = fmalloc(dataLen);
     newEntry.address = addr;
-    opened_file->setPosition(addr);
-    opened_file->write(entryData, dataLen);
+    openedFile->setPosition(addr);
+    openedFile->write(entryData, dataLen);
 
     // add the new entry to the table
-    private_entries->push_back(newEntry);
-    sort(private_entries->begin(), private_entries->end(), &compareFunction);
+    privateEntries->push_back(newEntry);
+    sort(privateEntries->begin(), privateEntries->end(), &compareFunction);
 
-    writeEntryTable(opened_file);
+    writeEntryTable(openedFile);
 
-    return get_entry_by_id(id, type);
+    return getEntryById(id, type);
 }
 
 void XDBF::injectAchievementEntry(Achievement_Entry *entry, unsigned long long id)
@@ -613,10 +613,10 @@ void XDBF::injectImageEntry(char *imageData, unsigned int len, unsigned long lon
 unsigned long long XDBF::getNextId(unsigned short type)
 {
     unsigned long long maxId = 0;
-    for (int i = 0; i < private_entries->size(); i++)
+    for (int i = 0; i < privateEntries->size(); i++)
     {
-        if ((maxId < private_entries->at(i).identifier) && private_entries->at(i).type == type && !(private_entries->at(i).identifier == SYNC_LIST || private_entries->at(i).identifier == SYNC_DATA || private_entries->at(i).identifier == TITLE_INFORMATION))
-            maxId = private_entries->at(i).identifier;
+        if ((maxId < privateEntries->at(i).identifier) && privateEntries->at(i).type == type && !(privateEntries->at(i).identifier == SYNC_LIST || privateEntries->at(i).identifier == SYNC_DATA || privateEntries->at(i).identifier == TITLE_INFORMATION))
+            maxId = privateEntries->at(i).identifier;
     }
     return maxId + 1;
 }
@@ -671,11 +671,11 @@ unsigned int XDBF::fmalloc(size_t dataLen)
         }
 
         // update the free mem table
-        h->free_memory_table_entry_count = freeMemTable.entryCount = freeMemTable.entries->size();
+        h->freeMemoryTableEntryCount = freeMemTable.entryCount = freeMemTable.entries->size();
 
         // write the new entry count
-        opened_file->setPosition(0x14);
-        opened_file->write((unsigned int)freeMemTable.entryCount);
+        openedFile->setPosition(0x14);
+        openedFile->write((unsigned int)freeMemTable.entryCount);
 
         // re-write the entry table
         writeFreeMemoryTable();
@@ -686,16 +686,16 @@ unsigned int XDBF::fmalloc(size_t dataLen)
     else
     {
         // seek to the end of the file
-        opened_file->setPosition(0, ios_base::end);
+        openedFile->setPosition(0, ios_base::end);
 
         // store the address of the current file end, becasue when we append
         // the reqested amount of memory, this current position will be the location
         // of the allocated memory
-        long freeMemAddr = opened_file->getPosition();
+        long freeMemAddr = openedFile->getPosition();
 
         // append the memory to the file
         char *temp = new char[dataLen];
-        opened_file->write(temp, dataLen);
+        openedFile->write(temp, dataLen);
 
         delete[] temp;
 
@@ -714,11 +714,11 @@ void XDBF::ffree(unsigned int address, size_t size)
 
     // update entry count
     freeMemTable.entryCount++;
-    h->free_memory_table_entry_count++;
+    h->freeMemoryTableEntryCount++;
 
     // write the new entry count
-    opened_file->setPosition(0x14);
-    opened_file->write(freeMemTable.entryCount);
+    openedFile->setPosition(0x14);
+    openedFile->write(freeMemTable.entryCount);
 
     writeFreeMemoryTable();
 }
@@ -726,14 +726,14 @@ void XDBF::ffree(unsigned int address, size_t size)
 void XDBF::writeEntryTable(FileIO *io)
 {
     // re-write entry table
-    for (int i = 0; i < h->entry_count; i++)
+    for (int i = 0; i < h->entryCount; i++)
     {
         io->setPosition((i * 0x12) + 0x18);
-        io->write(private_entries->at(i).type);
-        io->write(private_entries->at(i).identifier);
-        unsigned int temp = getFakeOffset(private_entries->at(i).address);
+        io->write(privateEntries->at(i).type);
+        io->write(privateEntries->at(i).identifier);
+        unsigned int temp = getFakeOffset(privateEntries->at(i).address);
         io->write(temp);
-        io->write(private_entries->at(i).length);
+        io->write(privateEntries->at(i).length);
     }
 }
 
@@ -746,31 +746,31 @@ void XDBF::removeEntry(Entry *entry)
         throw "You can't remove sync data or sync lists.";
 
     // remove sync entry
-    Sync_List list = get_sync_list(entry->type, (entry->type == ET_AVATAR_AWARD) ? 1 : SYNC_LIST);
+    Sync_List list = getSyncList(entry->type, (entry->type == ET_AVATAR_AWARD) ? 1 : SYNC_LIST);
     removeSyncEntry(entry->identifier, &list);
 
     Entry temp = *entry;
 
     // update entry count
-    h->entry_count--;
-    opened_file->setPosition(0xC);
-    opened_file->write(h->entry_count);
+    h->entryCount--;
+    openedFile->setPosition(0xC);
+    openedFile->write(h->entryCount);
 
     // remove entry from table
-    for (int i = 0; i < private_entries->size(); i++)
-        if (private_entries->at(i).identifier == temp.identifier && private_entries->at(i).type == temp.type)
+    for (int i = 0; i < privateEntries->size(); i++)
+        if (privateEntries->at(i).identifier == temp.identifier && privateEntries->at(i).type == temp.type)
         {
-            private_entries->erase(private_entries->begin() + i);
+            privateEntries->erase(privateEntries->begin() + i);
             break;
         }
 
     // re-write the entry table
-    writeEntryTable(opened_file);
+    writeEntryTable(openedFile);
 
     // update free memory table length
-    h->free_memory_table_entry_count++;
-    opened_file->setPosition(0x14);
-    opened_file->write(h->free_memory_table_entry_count);
+    h->freeMemoryTableEntryCount++;
+    openedFile->setPosition(0x14);
+    openedFile->write(h->freeMemoryTableEntryCount);
 
     // free the memory
     ffree(entry->address, entry->length);
@@ -782,22 +782,22 @@ void XDBF::removeEntry(Entry *entry)
 void XDBF::writeFreeMemoryTable()
 {
     // update the last free mem table entry
-    opened_file->setPosition(0, ios_base::end);
-    unsigned int pos = getFakeOffset(opened_file->getPosition());
+    openedFile->setPosition(0, ios_base::end);
+    unsigned int pos = getFakeOffset(openedFile->getPosition());
     freeMemTable.entries->at(freeMemTable.entries->size() - 1).offsetSpecifier = pos;
     freeMemTable.entries->at(freeMemTable.entries->size() - 1).length = 0xFFFFFFFF - pos;
 
-    int freeMemoryOffset = (h->entry_table_length * 0x12) + 0x18;
-    opened_file->setPosition(freeMemoryOffset);
+    int freeMemoryOffset = (h->entryTableLength * 0x12) + 0x18;
+    openedFile->setPosition(freeMemoryOffset);
     for (int i = 0; i < freeMemTable.entryCount; i++)
     {
-        opened_file->write(freeMemTable.entries->at(i).offsetSpecifier);
-        opened_file->write(freeMemTable.entries->at(i).length);
+        openedFile->write(freeMemTable.entries->at(i).offsetSpecifier);
+        openedFile->write(freeMemTable.entries->at(i).length);
     }
 
     // null out the rest of the table
-    for (int i = 0; i < h->free_memory_table_length - freeMemTable.entryCount; i++)
-        opened_file->write((unsigned long long)0);
+    for (int i = 0; i < h->freeMemoryTableLength - freeMemTable.entryCount; i++)
+        openedFile->write((unsigned long long)0);
 }
 
 void XDBF::injectTitleEntry(Title_Entry *entry, unsigned long long id)
@@ -838,11 +838,11 @@ void XDBF::injectTitleEntry(Title_Entry *entry, unsigned long long id)
 void XDBF::removeSyncEntry(unsigned long long identifier, Sync_List *list)
 {
     bool found = false;
-    for(int i = 0; i < list->entry_count; i++)
+    for(int i = 0; i < list->entryCount; i++)
         if (list->entries->at(i).identifier == identifier)
         {
             list->entries->erase(list->entries->begin() + i);
-            list->entry_count--;
+            list->entryCount--;
             found = true;
             break;
         }
@@ -850,7 +850,7 @@ void XDBF::removeSyncEntry(unsigned long long identifier, Sync_List *list)
     if(!found)
         return;
 
-    write_sync_list(list);
+    writeSyncList(list);
 }
 
 void XDBF::swapTitleEndianness(Title_Entry *entry)
@@ -868,18 +868,18 @@ void XDBF::swapTitleEndianness(Title_Entry *entry)
 void XDBF::writeEntry(Title_Entry *entry)
 {
     // seek to the entry's position
-    opened_file->setPosition(entry->entry->address);
+    openedFile->setPosition(entry->entry->address);
 
     // write the data
-    opened_file->write(entry->titleID);
-    opened_file->write(entry->achievementCount);
-    opened_file->write(entry->achievementUnlockedCount);
-    opened_file->write(entry->totalGamerscore);
-    opened_file->write(entry->gamerscoreUnlocked);
-    opened_file->write(*(unsigned long long*)&entry->unknown);
-    opened_file->write(entry->flags);
-    opened_file->write((unsigned int)entry->lastPlayed.dwHighDateTime);
-    opened_file->write((unsigned int)entry->lastPlayed.dwLowDateTime);
+    openedFile->write(entry->titleID);
+    openedFile->write(entry->achievementCount);
+    openedFile->write(entry->achievementUnlockedCount);
+    openedFile->write(entry->totalGamerscore);
+    openedFile->write(entry->gamerscoreUnlocked);
+    openedFile->write(*(unsigned long long*)&entry->unknown);
+    openedFile->write(entry->flags);
+    openedFile->write((unsigned int)entry->lastPlayed.dwHighDateTime);
+    openedFile->write((unsigned int)entry->lastPlayed.dwLowDateTime);
 }
 
 void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
@@ -1032,22 +1032,22 @@ void XDBF::writeEntry(Setting_Entry* entry)
             break;
         case SET_DATETIME:
             // seek to the entry data position
-            opened_file->setPosition(entry->entry->address + 0x10);
+            openedFile->setPosition(entry->entry->address + 0x10);
 
             // write the date time into the entry
-            opened_file->write((unsigned int)entry->time_stamp.dwHighDateTime);
-            opened_file->write((unsigned int)entry->time_stamp.dwLowDateTime);
+            openedFile->write((unsigned int)entry->time_stamp.dwHighDateTime);
+            openedFile->write((unsigned int)entry->time_stamp.dwLowDateTime);
         case SET_UNICODE:
             // if the entry size is less than the previous size then we're good to go
             if (entry->unicode_string.str_len_in_bytes <= (entry->entry->length - 0x18))
             {
                 // seek to the position of the string length
-                opened_file->setPosition(entry->entry->address + 0x10);
+                openedFile->setPosition(entry->entry->address + 0x10);
                 // write the new string length
-                opened_file->write((unsigned int)entry->unicode_string.str_len_in_bytes);
+                openedFile->write((unsigned int)entry->unicode_string.str_len_in_bytes);
                 // write the string
-                opened_file->setPosition(entry->entry->address + 0x18);
-                opened_file->write(*entry->unicode_string.str);
+                openedFile->setPosition(entry->entry->address + 0x18);
+                openedFile->write(*entry->unicode_string.str);
                 // free the excess memory
                 ffree(entry->entry->address + 0x18 + entry->unicode_string.str_len_in_bytes, entry->entry->length - (0x18 + entry->unicode_string.str_len_in_bytes));
             }
@@ -1061,14 +1061,14 @@ void XDBF::writeEntry(Setting_Entry* entry)
                 // update the entry's position
                 entry->entry->address = pos;
                 // re-write the entry table
-                writeEntryTable(opened_file);
+                writeEntryTable(openedFile);
                 // write the entry meta data
                 char temp[0x18];
                 writeSettingMetaData(temp, entry->entry->identifier, SET_UNICODE);
-                opened_file->setPosition(pos);
-                opened_file->write(temp, 0x18);
+                openedFile->setPosition(pos);
+                openedFile->write(temp, 0x18);
                 // write the string data
-                opened_file->write(*entry->unicode_string.str);
+                openedFile->write(*entry->unicode_string.str);
             }
     }
 }
@@ -1076,12 +1076,12 @@ void XDBF::writeEntry(Setting_Entry* entry)
 void XDBF::writeSettingEntryPrivate(void *data, int len, Entry *e)
 {
     // seek to the entry data position
-    opened_file->setPosition(e->address + 0x10);
+    openedFile->setPosition(e->address + 0x10);
 
     // change the endian of the value for writing
     SwapEndian(data, 1, len);
     // write the data to the entry
-    opened_file->write(data, len);
+    openedFile->write(data, len);
     // change the endian back to the original so it's not screwed up
     SwapEndian(data, 1, len);
 }
@@ -1092,15 +1092,15 @@ void XDBF::cleanGPD()
     FileIO *newFile = new FileIO(filePath.append(".4253efd018451c05326e15f1e1bcf402"));
 
     // set the free mem table count to 0, because we're overwriting all the unused memory
-    h->free_memory_table_entry_count = 0;
+    h->freeMemoryTableEntryCount = 0;
 
     // write the header to the file
     newFile->write(h->magic);
     newFile->write(h->version);
-    newFile->write(h->entry_table_length);
-    newFile->write(h->entry_count);
-    newFile->write(h->free_memory_table_length);
-    newFile->write(h->free_memory_table_entry_count);
+    newFile->write(h->entryTableLength);
+    newFile->write(h->entryCount);
+    newFile->write(h->freeMemoryTableLength);
+    newFile->write(h->freeMemoryTableEntryCount);
 
     // length of the entry table and free mem table in bytes
     int paddingLen = get_offset(0) - 0x18;
@@ -1112,20 +1112,20 @@ void XDBF::cleanGPD()
     delete[] nullData;
 
     // write all of the entries
-    for (int i = 0; i < private_entries->size(); i++)
+    for (int i = 0; i < privateEntries->size(); i++)
     {
         // allocate some memory to hold the entry in
-        char *temp = new char[private_entries->at(i).length];
+        char *temp = new char[privateEntries->at(i).length];
 
         // read the entry
-        opened_file->setPosition(private_entries->at(i).address);
-        opened_file->read(temp, private_entries->at(i).length);
+        openedFile->setPosition(privateEntries->at(i).address);
+        openedFile->read(temp, privateEntries->at(i).length);
 
         // update the entry's address
-        private_entries->at(i).address = newFile->getPosition();
+        privateEntries->at(i).address = newFile->getPosition();
 
         // write the new entry
-        newFile->write(temp, private_entries->at(i).length);
+        newFile->write(temp, privateEntries->at(i).length);
 
         // deallocate the memory
         delete[] temp;
@@ -1139,13 +1139,13 @@ void XDBF::cleanGPD()
     unsigned int addr = getFakeOffset(newFile->getPosition());
 
     // write file info free mem setting entry
-    newFile->setPosition((h->entry_table_length * 0x12) + 0x18);
+    newFile->setPosition((h->entryTableLength * 0x12) + 0x18);
     newFile->write(addr);
     newFile->write(0xFFFFFFFF - addr);
 
     // the file to read/write from now will be the one we just created
-    opened_file->close();
-    delete opened_file;
+    openedFile->close();
+    delete openedFile;
     newFile->close();
     delete newFile;
 
@@ -1160,7 +1160,7 @@ void XDBF::cleanGPD()
         throw "Error renaming file.";
 
     filePath = s;
-    opened_file = new FileIO(filePath);
+    openedFile = new FileIO(filePath);
 }
 
 void XDBF::injectStringEntry(wstring wstr, unsigned long long id)
@@ -1278,7 +1278,7 @@ vector<unsigned short> XDBF::getEntrySyncTypes()
 {
     vector<unsigned short> toReturn;
     for (int i = 1; i < 6; i++)
-        if (get_entry_by_id((i == 6) ? 1 : SYNC_LIST, i) != NULL)
+        if (getEntryById((i == 6) ? 1 : SYNC_LIST, i) != NULL)
             toReturn.push_back(i);
     return toReturn;
 }

@@ -24,7 +24,7 @@ AvatarAwardDialog::AvatarAwardDialog(QWidget *parent, Avatar_Award_Entry *entry,
     int state = (award->flags32 >> 16) & 3;
     ui->stateCbx->setCurrentIndex((state == 0) ? 0 : state - 1);
 
-    QDateTime unlockedTime = QDateTime::fromTime_t(FILETIME_to_time_t(&award->unlockTime));
+    QDateTime unlockedTime = QDateTime::fromTime_t(FILETIMEToTime_t(&award->unlockTime));
     ui->unlockedTimeDte->setDateTime(unlockedTime);
 
     QString url = "http://avatar.xboxlive.com/global/t." + QString::number(award->titleID, 16) + "/avataritem/" + QString::fromStdString(guid(award)) + "/128";
@@ -59,7 +59,7 @@ void AvatarAwardDialog::on_saveBtn_clicked()
     int index = ui->stateCbx->currentIndex();
     award->flags32 |= (index == 0) ? 0 : ((index + 1) << 16);
 
-    award->unlockTime = time_t_to_FILETIME(ui->unlockedTimeDte->dateTime().toTime_t());
+    award->unlockTime = time_tToFILETIME(ui->unlockedTimeDte->dateTime().toTime_t());
 
     xdbf->writeEntry(award);
     QMessageBox::information(this, "Success", "Successfully saved changes.");

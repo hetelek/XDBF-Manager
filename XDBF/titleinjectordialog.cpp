@@ -26,7 +26,7 @@ TitleInjectorDialog::TitleInjectorDialog(QWidget *parent, XDBF *xdbf, Title_Entr
         ui->aaMaleCount->setValue(tentry->maleAvatarAwardCount);
         ui->aaFemaleUnlocked->setValue(tentry->femaleAvatarAwardsEarned);
         ui->aaFemaleCount->setValue(tentry->femaleAvaterAwardCount);
-        ui->dateTimeEdit->setDateTime(QDateTime::fromTime_t(FILETIME_to_time_t(&tentry->lastPlayed)));
+        ui->dateTimeEdit->setDateTime(QDateTime::fromTime_t(FILETIMEToTime_t(&tentry->lastPlayed)));
         ui->titleID->setText(QString::number(tentry->titleID, 16).toUpper());
 
         int removed = 0;
@@ -161,7 +161,7 @@ void TitleInjectorDialog::on_pushButton_2_clicked()
     };
 
     // set the last played field
-    entry.lastPlayed = time_t_to_FILETIME(ui->dateTimeEdit->dateTime().toTime_t());
+    entry.lastPlayed = time_tToFILETIME(ui->dateTimeEdit->dateTime().toTime_t());
 
     // set the game name field
     wstring *name = new wstring(ui->gameNameTxt->text().toStdWString());
