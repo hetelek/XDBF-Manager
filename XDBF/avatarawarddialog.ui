@@ -10,6 +10,11 @@
     <height>277</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>Arial</family>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Avatar Award Entry</string>
   </property>
@@ -23,6 +28,11 @@
          <width>261</width>
          <height>16</height>
         </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+        </font>
        </property>
        <property name="text">
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -50,6 +60,11 @@ p, li { white-space: pre-wrap; }
          <height>128</height>
         </size>
        </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+        </font>
+       </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
        </property>
@@ -75,6 +90,11 @@ p, li { white-space: pre-wrap; }
          <height>16</height>
         </size>
        </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+        </font>
+       </property>
        <property name="text">
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -97,6 +117,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
+         <family>Arial</family>
          <pointsize>12</pointsize>
         </font>
        </property>
@@ -118,6 +139,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
+         <family>Arial</family>
          <pointsize>12</pointsize>
         </font>
        </property>
@@ -143,6 +165,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
+         <family>Arial</family>
          <pointsize>12</pointsize>
         </font>
        </property>
@@ -168,6 +191,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
+         <family>Arial</family>
          <pointsize>12</pointsize>
         </font>
        </property>
@@ -187,6 +211,7 @@ p, li { white-space: pre-wrap; }
       <widget class="QLabel" name="secretLbl">
        <property name="font">
         <font>
+         <family>Arial</family>
          <pointsize>12</pointsize>
         </font>
        </property>
@@ -201,6 +226,11 @@ p, li { white-space: pre-wrap; }
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QLabel" name="label_8">
+           <property name="font">
+            <font>
+             <family>Arial</family>
+            </font>
+           </property>
            <property name="text">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -211,10 +241,21 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
-          <widget class="QDateTimeEdit" name="unlockedTimeDte"/>
+          <widget class="QDateTimeEdit" name="unlockedTimeDte">
+           <property name="font">
+            <font>
+             <family>Arial</family>
+            </font>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="saveBtn">
+           <property name="font">
+            <font>
+             <family>Arial</family>
+            </font>
+           </property>
            <property name="text">
             <string>Save</string>
            </property>
@@ -233,6 +274,11 @@ p, li { white-space: pre-wrap; }
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QLabel" name="label_7">
+           <property name="font">
+            <font>
+             <family>Arial</family>
+            </font>
+           </property>
            <property name="text">
             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -244,6 +290,11 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QComboBox" name="stateCbx">
+           <property name="font">
+            <font>
+             <family>Arial</family>
+            </font>
+           </property>
            <item>
             <property name="text">
              <string>Locked</string>
@@ -263,6 +314,11 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QPushButton" name="cancelBtn">
+           <property name="font">
+            <font>
+             <family>Arial</family>
+            </font>
+           </property>
            <property name="text">
             <string>Cancel</string>
            </property>
