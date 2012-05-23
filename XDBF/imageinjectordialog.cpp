@@ -4,11 +4,13 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QBuffer>
+#include "mainwindow.h"
 
 ImageInjectorDialog::ImageInjectorDialog(QWidget *parent, XDBF* xdbf) : QDialog(parent), ui(new Ui::ImageInjectorDialog), xdbf(xdbf), imageOpened(false)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     knownIDs = new unsigned long long[2];
     knownIDs[0] = 0x8007;

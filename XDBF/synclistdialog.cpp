@@ -1,5 +1,6 @@
 #include "synclistdialog.h"
 #include "ui_synclistdialog.h"
+#include "mainwindow.h"
 
 Q_DECLARE_METATYPE(Sync_Entry*)
 
@@ -8,6 +9,7 @@ SyncListDialog::SyncListDialog(QWidget *parent, Sync_List *_list, XDBF *_xdbf) :
     ObjectRole = Qt::UserRole + 1;
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     for(int i = 0; i < list->entryCount; i++)
     {

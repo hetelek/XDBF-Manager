@@ -9,6 +9,8 @@
 #include "newgpddialog.h"
 #include "about.h"
 
+#include <QLabel>
+
 Q_DECLARE_METATYPE(Entry*)
 
 MainWindow::MainWindow(QWidget *parent, string filePath) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -58,6 +60,59 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+// from: http://stackoverflow.com/questions/5298614/change-the-size-of-qt-dialogs-depending-on-the-platform
+void MainWindow::adjustAppearanceToOS(QWidget *rootWidget)
+{
+    int fontSize = -1;
+    #ifdef Q_OS_WIN | Q_OS_WIN32
+            fontSize = 8;
+    #elif Q_OS_MAC
+            fontSize = 12;
+    #endif
+
+    if (rootWidget == NULL)
+        return;
+
+    QObject *child = NULL;
+    QObjectList Containers;
+    QObject *container  = NULL;
+    QStringList DoNotAffect;
+
+    // Make an exception list (Objects not to be affected)
+    // DoNotAffect.append("widgetName");
+
+    // Append root to containers
+    Containers.append(rootWidget);
+
+    while (!Containers.isEmpty())
+    {
+        container = Containers.takeFirst();
+        if (container != NULL)
+            for (int i = 0; i < container->children().size(); i++)
+            {
+                child = container->children()[i];
+                if (!child->isWidgetType() || DoNotAffect.contains(child->objectName()))
+                    continue;
+
+                if (child->children().size() > 0)
+                    Containers.append(child);
+                else
+                {
+                    // (if the object is not of the correct type, it will be NULL)
+                    QLabel *label = qobject_cast<QLabel *>(child);
+
+                    if (label != NULL)
+                    {
+                        QFont font = label->font();
+                        font.setPointSize(fontSize);
+                        label->setFont(font);
+                    }
+                }
+            }
+    }
+}
+//
 
 void MainWindow::on_actionOpen_triggered()
 {

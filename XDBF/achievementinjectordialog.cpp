@@ -5,11 +5,14 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QBuffer>
+#include "mainwindow.h"
 
 AchievementInjectorDialog::AchievementInjectorDialog(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::AchievementInjectorDialog), xdbf(xdbf), isOpened(false)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+
+    MainWindow::adjustAppearanceToOS(this);
 }
 
 AchievementInjectorDialog::~AchievementInjectorDialog()

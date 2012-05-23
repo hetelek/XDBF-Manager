@@ -1,12 +1,14 @@
 #include "stringinjector.h"
 #include "ui_stringinjector.h"
 #include <QMessageBox>
+#include "mainwindow.h"
 
 StringInjector::StringInjector(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::StringInjector), xdbf(xdbf)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 }
 
 StringInjector::~StringInjector()

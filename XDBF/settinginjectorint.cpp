@@ -4,12 +4,14 @@
 #include <QMessageBox>
 #include <iostream>
 #include <float.h>
+#include "mainwindow.h"
 
 using std::string;
 
 SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type, Setting_Entry *entry) : xdbf(xdbf), QDialog(parent), ui(new Ui::SettingInjectorInt), spinBox(NULL), dSpinBox(NULL), lineEditP(NULL), type(type), entry(entry)
 {
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 

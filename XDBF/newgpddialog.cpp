@@ -6,11 +6,13 @@
 #include <QFileDialog>
 #include "achievementgpd.h"
 #include <QMessageBox>
+#include "mainwindow.h"
 
 NewGpdDialog::NewGpdDialog(QWidget *parent, XDBF **xdbf, bool *b) : QDialog(parent), ui(new Ui::NewGpdDialog), xdbf(xdbf), b(b)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 }
 
 NewGpdDialog::~NewGpdDialog()

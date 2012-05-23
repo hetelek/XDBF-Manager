@@ -1,10 +1,12 @@
 #include "avatarawarddialog.h"
 #include "ui_avatarawarddialog.h"
+#include "mainwindow.h"
 
 AvatarAwardDialog::AvatarAwardDialog(QWidget *parent, Avatar_Award_Entry *entry, XDBF *xdbf) : xdbf(xdbf), award(entry), QDialog(parent), ui(new Ui::AvatarAwardDialog)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     ui->nameLbl->setText("<b>Name: </b>" + QString::fromWCharArray(award->name->c_str()));
     ui->clothingTypeLbl->setText("<b>Clothing Type: </b>" + QString::fromStdString(getClothingType(award)));

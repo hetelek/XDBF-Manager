@@ -1,10 +1,12 @@
 #include "addressconverter.h"
 #include "ui_addressconverter.h"
+#include "mainwindow.h"
 
 AddressConverter::AddressConverter(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::AddressConverter), xdbf(xdbf)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     ui->realSpBx->setValue(xdbf->get_offset(0));
     ui->realSpBx->setMinimum(ui->realSpBx->value());

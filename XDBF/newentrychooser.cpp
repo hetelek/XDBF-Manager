@@ -6,11 +6,13 @@
 #include "imageinjectordialog.h"
 #include "stringinjector.h"
 #include "binaryinjector.h"
+#include "mainwindow.h"
 
 NewEntryChooser::NewEntryChooser(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::NewEntryChooser), xdbf(xdbf)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     setFixedSize(sizeHint());
 

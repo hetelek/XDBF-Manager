@@ -10,9 +10,9 @@ QT       += network
 TARGET = XDBF
 TEMPLATE = app
 
-#ifdef _WIN32 | _WIN64
+#ifdef Q_OS_WIN | Q_OS_WIN32
     RC_FILE = app.rc
-#elif __APPLE__
+#elif Q_OS_MAC
     ICON = app.icns
 #endif
 

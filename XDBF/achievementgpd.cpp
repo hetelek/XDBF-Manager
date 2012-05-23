@@ -4,11 +4,14 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QBuffer>
+#include "mainwindow.h"
 
 AchievementGPD::AchievementGPD(QWidget *parent, XDBF **xdbf, bool *b) : QDialog(parent), ui(new Ui::AchievementGPD), xdbf(xdbf), imageOpened(false), b(b)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+
+    MainWindow::adjustAppearanceToOS(this);
 }
 
 AchievementGPD::~AchievementGPD()

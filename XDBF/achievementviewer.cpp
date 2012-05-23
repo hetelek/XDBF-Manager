@@ -1,11 +1,13 @@
 #include "achievementviewer.h"
 #include "ui_achievementviewer.h"
+#include "mainwindow.h"
 
 AchievementViewer::AchievementViewer(QWidget *parent, Achievement_Entry *chiev, FileIO *f, QImage image, long address)
     : QDialog(parent), ui(new Ui::AchievementViewer), img(image), entry(chiev), entryAddr(address)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     opened_file = f;
 

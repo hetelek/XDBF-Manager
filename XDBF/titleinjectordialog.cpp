@@ -4,11 +4,13 @@
 #include <QMessageBox>
 #include <ctype.h>
 #include <QDateTime>
+#include "mainwindow.h"
 
 TitleInjectorDialog::TitleInjectorDialog(QWidget *parent, XDBF *xdbf, Title_Entry *tentry) : QDialog(parent), ui(new Ui::TitleInjectorDialog), xdbf(xdbf), tentry(tentry)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     // if the caller passes in a title entry, then we'll display the entry's data
     if (tentry != NULL)

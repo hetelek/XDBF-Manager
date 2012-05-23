@@ -5,12 +5,14 @@
 #include <QDesktopServices>
 #include <QFile>
 #include <QMessageBox>
+#include "mainwindow.h"
 
 BinaryInjector::BinaryInjector(XDBF *xdbf_pv, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BinaryInjector), xdbf(xdbf_pv)
 {
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     knownIDs = new unsigned long long[29];
     knownIDs[0] = 0x10040003;

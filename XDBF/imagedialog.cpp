@@ -1,10 +1,12 @@
 #include "imagedialog.h"
 #include "ui_imagedialog.h"
+#include "mainwindow.h"
 
 ImageDialog::ImageDialog(QWidget *parent, QImage *img_) : QDialog(parent), ui(new Ui::ImageDialog), img(img_)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    MainWindow::adjustAppearanceToOS(this);
 
     ui->label->setPixmap(QPixmap::fromImage(*img));
     ui->label_2->setText("(" + QString::number(img->width()) + ", " + QString::number(img->height()) + ")");

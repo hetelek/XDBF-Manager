@@ -16,6 +16,7 @@
 #include <xdbf.h>
 #include <synclistdialog.h>
 
+
 using namespace std;
 
 namespace Ui {
@@ -28,6 +29,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent, string filePath = "");
+    static void adjustAppearanceToOS(QWidget *rootWidget);
     ~MainWindow();
 
 private slots:
