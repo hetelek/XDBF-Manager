@@ -65,9 +65,9 @@ MainWindow::~MainWindow()
 void MainWindow::adjustAppearanceToOS(QWidget *rootWidget)
 {
     int fontSize = -1;
-    #ifdef Q_OS_WIN | Q_OS_WIN32
+    #ifdef Q_OS_WIN
             fontSize = 8;
-    #elif Q_OS_MAC
+    #elif __APPLE__
             fontSize = 12;
     #endif
 
@@ -97,17 +97,16 @@ void MainWindow::adjustAppearanceToOS(QWidget *rootWidget)
 
                 if (child->children().size() > 0)
                     Containers.append(child);
-                else
-                {
-                    // (if the object is not of the correct type, it will be NULL)
-                    QLabel *label = qobject_cast<QLabel *>(child);
 
-                    if (label != NULL)
-                    {
-                        QFont font = label->font();
-                        font.setPointSize(fontSize);
-                        label->setFont(font);
-                    }
+                // (if the object is not of the correct type, it will be NULL)
+                QLabel *label = qobject_cast<QLabel *>(child);
+                if (label != NULL)
+                {
+                    label->setText(label->text().replace(QRegExp("font-size:.*;"), ""));
+
+                    QFont font = label->font();
+                    font.setPointSize(fontSize);
+                    label->setFont(font);
                 }
             }
     }
