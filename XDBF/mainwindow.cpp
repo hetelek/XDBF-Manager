@@ -66,9 +66,11 @@ void MainWindow::adjustAppearanceToOS(QWidget *rootWidget)
 {
     int fontSize = -1;
     #ifdef Q_OS_WIN
-            fontSize = 8;
+        fontSize = 8;
     #elif __APPLE__
-            fontSize = 12;
+        fontSize = 12;
+    #elif __linux
+        fontSize = 11;
     #endif
 
     if (rootWidget == NULL)

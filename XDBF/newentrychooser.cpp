@@ -74,7 +74,7 @@ void NewEntryChooser::on_pushButton_clicked()
         SettingInjectorInt dialog(this, xdbf, SET_DOUBLE);
         dialog.exec();
     }
-    else if (ui->comboBox->currentText() == "Setting - Unicode")
+    else if (ui->comboBox->currentText() == "Setting - String")
     {
         SettingInjectorInt dialog(this, xdbf, SET_UNICODE);
         dialog.exec();

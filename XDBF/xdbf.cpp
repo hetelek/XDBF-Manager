@@ -910,24 +910,20 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
             // write the entry meta data
             writeSettingMetaData(data, id, SET_UNICODE);
 
-            // write the string length (in bytes)
-            SwapEndian(&entry->unicode_string.str_len_in_bytes);
-            memcpy(data + 0x10, &entry->unicode_string.str_len_in_bytes, 4);
-            SwapEndian(&entry->unicode_string.str_len_in_bytes);
+            // copy the characters to the array
+            for (int i = 0; i < entry->unicode_string.str->length(); i++)
+            {
+                ((unsigned short*)data)[i + 12] = (unsigned short)entry->unicode_string.str->at(i);
+                SwapEndian(&((unsigned short*)data)[i + 12], 1, 2);
+            }
 
-            // create a new temporary string so that we can change it to big endian
-            wchar_t *tempString = new wchar_t[entry->unicode_string.str_len_in_bytes / sizeof(wchar_t)];
-            memcpy(tempString, entry->unicode_string.str->c_str(), entry->unicode_string.str_len_in_bytes);
-            SwapEndianUnicode(tempString, entry->unicode_string.str_len_in_bytes);
-
-            // copy the correct string into the write buffer
-            memcpy(data + 0x18, tempString, entry->unicode_string.str_len_in_bytes);
+            data[entry->unicode_string.str->length()] = 0;
 
             // write the entry
             injectEntry_private(ET_SETTING, data, entry->unicode_string.str_len_in_bytes + 24, id);
 
             // give that string back to memory
-            delete[] tempString;
+            delete[] data;
             break;
         }
         case SET_DATETIME:
@@ -1171,13 +1167,16 @@ void XDBF::injectStringEntry(wstring wstr, unsigned long long id)
 
     // create a character array to hold the data to write, we need to
     // make a copy so that we can reverse the endian of the wstring
-    wchar_t *dataToWrite = new wchar_t[wstr.length() + 1];
+    unsigned short *dataToWrite = new unsigned short[wstr.length() + 1];
 
-    // copy the string to the temp location
-    memcpy(dataToWrite, &wstr.at(0), WSTRING_BYTES(wstr.length()));
+    // copy the characters to the array
+    for (int i = 0; i < wstr.length(); i++)
+    {
+        dataToWrite[i] = (unsigned short)wstr.at(i);
+        SwapEndian(&dataToWrite[i], 1, 2);
+    }
 
-    // change the endian
-    SwapEndianUnicode(dataToWrite, WSTRING_BYTES(wstr.length()));
+    dataToWrite[wstr.length()] = 0;
 
     // inject the new string entry
     injectEntry_private(ET_STRING, (char*)dataToWrite, WSTRING_BYTES(wstr.length()), id);

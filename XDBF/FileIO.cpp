@@ -1,4 +1,5 @@
 #include "FileIO.h"
+#include <string.h>
 
 FileIO::FileIO(string path)
 {
