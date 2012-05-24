@@ -195,6 +195,13 @@ void SettingInjectorInt::on_pushButton_clicked()
 {
     QString msgBoxText = "";
 
+    // make sure the user provided an ID if they selected "User Defined"
+    if (ui->lineEdit->text().length() == 0)
+    {
+        QMessageBox::warning(this, "Whoops!", "You forgot to provide an ID for the entry!");
+        return;
+    }
+
     if (entry == NULL)
     {
         // create a new setting entry of type int32, and set the value

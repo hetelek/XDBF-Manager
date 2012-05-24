@@ -12,6 +12,7 @@ AchievementGPD::AchievementGPD(QWidget *parent, XDBF **xdbf, bool *b) : QDialog(
     ui->setupUi(this);
 
     MainWindow::adjustAppearanceToOS(this);
+    setFixedSize(sizeHint());
 }
 
 AchievementGPD::~AchievementGPD()
