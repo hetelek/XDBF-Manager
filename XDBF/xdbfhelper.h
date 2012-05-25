@@ -253,5 +253,7 @@ time_t FILETIMEToTime_t(FILETIME *pft);
 FILETIME time_tToFILETIME(time_t unixTime);
 std::string getClothingType(Avatar_Award_Entry *item);
 std::string guid(Avatar_Award_Entry *item);
+unsigned long long getIdFromName(std::string name);
+unsigned short getTypeFromName(std::string name);
 
 #endif // CHANGE_ENDIANESS_H

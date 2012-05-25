@@ -753,6 +753,7 @@ void XDBF::removeEntry(Entry *entry)
 
     // update entry count
     h->entryCount--;
+
     openedFile->setPosition(0xC);
     openedFile->write(h->entryCount);
 

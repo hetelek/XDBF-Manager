@@ -72,6 +72,7 @@ private:
     QString desktop_location;
     void extractFiles(QList<QTableWidgetItem *> items);
     void loadEntries();
+    bool hexNumbersOnly(QString s);
 };
 
 #endif // MAINWINDOW_H

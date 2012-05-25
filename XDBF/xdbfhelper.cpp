@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+using namespace std;
+
 void SwapEndian(void *array, int elemSize, int len)
 {
     void *temp = new char[elemSize];
@@ -204,4 +206,103 @@ std::string guid(Avatar_Award_Entry *item)
     sprintf(guid, "%08x-%04x-%04x-%04x-%04x%08x\0", item->clothingType, segments[3], segments[2], segments[1], segments[0], item->titleID);
 
     return std::string(guid);
+}
+
+unsigned long long getIdFromName(std::string name)
+{
+    if (name.compare("Sync List") == 0)
+        return 0x100000000;
+    else if (name.compare("Sync Data") == 0)
+        return 0x200000000;
+    else if (name.compare("Option Controller Vibration") == 0)
+        return 0x10040003;
+    else if (name.compare("Title Specific1") == 0)
+        return 0x63E83FFF;
+    else if (name.compare("Title Specific2") == 0)
+        return 0x63E83FFE;
+    else if (name.compare("Title Specific3") == 0)
+        return 0x63E83FFD;
+    else if (name.compare("Gamer Yaxis Inversion") == 0)
+        return 0x10040002;
+    else if (name.compare("Gamercard Zone") == 0)
+        return 0x10040004;
+    else if (name.compare("Gamercard Region") == 0)
+        return 0x10040005;
+    else if (name.compare("Gamercard Cred") == 0)
+        return 0x10040006;
+    else if (name.compare("Gamercard Rep") == 0)
+        return 0x50040011;
+    else if (name.compare("Option Voice Muted") == 0)
+        return 0x10040012;
+    else if (name.compare("Option Voice Thru Speakers") == 0)
+        return 0x10040013;
+    else if (name.compare("Option Voice Thru Speakers Raw") == 0)
+        return 0x10040063;
+    else if (name.compare("Option Voice Volume") == 0)
+        return 0x10040014;
+    else if (name.compare("Gamercard Titles Played") == 0)
+        return 0x10040018;
+    else if (name.compare("Gamercard Achievements Earned") == 0)
+        return 0x10040019;
+    else if (name.compare("Gamer Difficulty") == 0)
+        return 0x10040021;
+    else if (name.compare("Gamer Control Sensitivity") == 0)
+        return 0x10040024;
+    else if (name.compare("Gamer Preferred Color First") == 0)
+        return 0x10040029;
+    else if (name.compare("Gamer Preferred Color Second") == 0)
+        return 0x10040030;
+    else if (name.compare("Gamer Action Auto Aim") == 0)
+        return 0x10040034;
+    else if (name.compare("Gamer Action Auto Center") == 0)
+        return 0x10040035;
+    else if (name.compare("Gamer Action Movement Control") == 0)
+        return 0x10040036;
+    else if (name.compare("Gamer Race Transmission") == 0)
+        return 0x10040038;
+    else if (name.compare("Gamer Race Camera Location") == 0)
+        return 0x10040039;
+    else if (name.compare("Gamer Race Brake Control") == 0)
+        return 0x10040040;
+    else if (name.compare("Gamer Race Accelerator Control") == 0)
+        return 0x10040041;
+    else if (name.compare("Gamercard Title Cred Earned") == 0)
+        return 0x10040056;
+    else if (name.compare("Gamercard Title Achievements Earned") == 0)
+        return 0x10040057;
+    else if (name.compare("Avatar Metadata") == 0)
+        return 0x63E80068;
+    else if (name.compare("Gamercard Picture Key") == 0)
+        return 0x4064000F;
+    else if (name.compare("Gamercard Motto") == 0)
+        return 0x402C0011;
+    else if (name.compare("Title Information") == 0)
+        return 0x8000;
+    else if (name.compare("Gamer Name") == 0)
+        return 0x41040040;
+    else if (name.compare("Gamer Location") == 0)
+        return 0x40520041;
+    else if (name.compare("Avatar Information") == 0)
+        return 0x63e80044;
+    else if (name.compare("Avatar Image") == 0)
+        return 0x8007;
+    else
+        throw "Invalid name!";
+}
+
+unsigned short getTypeFromName(std::string name)
+{
+    if (name.compare("Achievement") == 0)
+        return 1;
+    else if (name.compare("Image") == 0)
+        return 2;
+    else if (name.find("Setting") != string::npos)
+        return 3;
+    else if (name.compare("Title") == 0)
+        return 4;
+    else if (name.compare("String") == 0)
+        return 5;
+    else if (name.compare("Avatar Award") == 0)
+        return 6;
+    return 0;
 }
