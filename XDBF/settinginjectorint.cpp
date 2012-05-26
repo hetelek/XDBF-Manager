@@ -108,7 +108,6 @@ SettingInjectorInt::SettingInjectorInt(QWidget *parent, XDBF *xdbf, char type, S
                 break;
         }
     }
-
     else
     {
         // remove all widgets associated with choosing the entry's id
@@ -195,15 +194,15 @@ void SettingInjectorInt::on_pushButton_clicked()
 {
     QString msgBoxText = "";
 
-    // make sure the user provided an ID if they selected "User Defined"
-    if (ui->lineEdit->text().length() == 0)
-    {
-        QMessageBox::warning(this, "Whoops!", "You forgot to provide an ID for the entry!");
-        return;
-    }
-
     if (entry == NULL)
     {
+        // make sure the user provided an ID if they selected "User Defined"
+        if (ui->lineEdit->text().length() == 0)
+        {
+            QMessageBox::warning(this, "Whoops!", "You forgot to provide an ID for the entry!");
+            return;
+        }
+
         // create a new setting entry of type int32, and set the value
         // to the one provided by the user
         Setting_Entry entry;
