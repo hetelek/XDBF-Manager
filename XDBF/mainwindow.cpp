@@ -16,7 +16,7 @@ Q_DECLARE_METATYPE(Entry*)
 MainWindow::MainWindow(QWidget *parent, string filePath) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     desktop_location = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
-    ObjectRole = Qt::UserRole + 1;
+    ObjectRole = Qt::UserRole;
 
     ui->setupUi(this);
 
@@ -47,6 +47,11 @@ MainWindow::MainWindow(QWidget *parent, string filePath) : QMainWindow(parent), 
         {
             xdbf = new XDBF(filePath);
             loadEntries();
+            ui->actionAdd_New_Entry->setEnabled(true);
+            ui->actionExtract_All->setEnabled(true);
+            ui->actionClean_GPD->setEnabled(true);
+            ui->actionAddress_Converter->setEnabled(true);
+            ui->actionClose->setEnabled(true);
         }
         catch (...)
         {
@@ -174,7 +179,7 @@ void MainWindow::on_actionClose_triggered()
     xdbf = NULL;
     clear_items();
 
-    setWindowTitle("XDBF Manager - ALPHA BUID");
+    setWindowTitle("XDBF Manage");
 }
 
 void MainWindow::loadEntries()
@@ -210,7 +215,7 @@ void MainWindow::loadEntries()
             else if (entries[i].identifier == 0x8000 && entries[i].type == ET_STRING)
             {
                 std::wstring titleName = xdbf->getStringEntry(&entries[i]);
-                setWindowTitle("XDBF Manager - ALPHA BUILD - " + QString::fromWCharArray(titleName.c_str()));
+                setWindowTitle("XDBF Manager - " + QString::fromWCharArray(titleName.c_str()));
             }
             ui->tableWidget->setItem(i, 3, new QTableWidgetItem(friendlyNames[entries[i].type - 1] + setting_entry_name));
         }
@@ -410,12 +415,20 @@ void MainWindow::showRemoveContextMenu(const QPoint &pos)
         {
             QList<QTableWidgetItem*> items = ui->tableWidget->selectedItems();
 
-            for(int i = 0; i < items.count() / 4; i++)
+            for(int i = 0; i < items.count(); i++)
+                qDebug("%d: %s", i, items.at(i)->text().toStdString().c_str());
+
+            for(int i = 0; i < items.count(); i += 4)
             {
-                Entry *e = items[i]->data(ObjectRole).value<Entry*>();
+                bool hexOnly = hexNumbersOnly(items.at(i)->text().remove("0x"));
+                unsigned long long id = hexOnly ? items.at(i)->text().toULongLong(0, 16) : getIdFromName(items.at(i)->text().toStdString());
+                unsigned short type = getTypeFromName(items.at(i + 3)->text().toStdString());
+                Entry *e = xdbf->getEntryById(id, type);
                 xdbf->removeEntry(e);
-                ui->tableWidget->removeRow(items[i]->row());
             }
+
+            for(int i = 0; i < items.count(); i += 4)
+                ui->tableWidget->removeRow(items[i]->row());
         }
         else if(selectedItem->text() == "Extract Selected")
         {
@@ -426,6 +439,14 @@ void MainWindow::showRemoveContextMenu(const QPoint &pos)
     {
         QMessageBox::warning(this, "Error Thrown", QString::fromLocal8Bit(str));
     }
+}
+
+bool MainWindow::hexNumbersOnly(QString s)
+{
+    for (int i = 0; i < s.length(); i++)
+        if (isxdigit(s.at(i).toAscii()) == 0)
+            return false;
+    return true;
 }
 
 void MainWindow::on_actionAddress_Converter_triggered()

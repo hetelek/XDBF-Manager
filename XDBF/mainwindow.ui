@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>XDBF Manager - ALPHA BUILD</string>
+   <string>XDBF Manager</string>
   </property>
   <property name="windowIcon">
    <iconset resource="images.qrc">
