@@ -219,8 +219,8 @@ Title_Entry* XDBF::getTitleEntry(Entry *entry)
     t_entry->titleID = openedFile->readUInt32();
     t_entry->achievementCount = openedFile->readInt32();
     t_entry->achievementUnlockedCount = openedFile->readInt32();
-    t_entry->gamerscoreUnlocked = openedFile->readUInt32();
     t_entry->totalGamerscore = openedFile->readUInt32();
+    t_entry->gamerscoreUnlocked = openedFile->readUInt32();
     openedFile->read(&t_entry->unknown, 8);
     t_entry->flags = openedFile->readUInt32();
     t_entry->lastPlayed.dwHighDateTime = openedFile->readUInt32();
