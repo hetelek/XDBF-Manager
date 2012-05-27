@@ -170,7 +170,7 @@ Setting_Entry* XDBF::getSettingEntry(Entry *entry)
             bin_size = openedFile->readUInt32();
             s_entry->binary.size = bin_size;
             s_entry->binary.data = new char[bin_size];
-            openedFile->setPosition(entry->address + 0x14);
+            openedFile->setPosition(entry->address + 0x18);
             openedFile->read(s_entry->binary.data, bin_size);
             break;
 
@@ -960,7 +960,7 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
             SwapEndian(&entry->binary.size);
             *(int*)&buffer[0x10] = entry->binary.size;
             SwapEndian(&entry->binary.size);
-            memcpy(&buffer[0x14], entry->binary.data, entry->binary.size);
+            memcpy(&buffer[0x18], entry->binary.data, entry->binary.size);
             injectEntry_private(ET_SETTING, buffer, size, id);
             break;
     }
