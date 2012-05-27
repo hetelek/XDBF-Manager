@@ -7,6 +7,7 @@
 #include "stringinjector.h"
 #include "binaryinjector.h"
 #include "mainwindow.h"
+#include <algorithm>
 
 NewEntryChooser::NewEntryChooser(QWidget *parent, XDBF *xdbf) : QDialog(parent), ui(new Ui::NewEntryChooser), xdbf(xdbf)
 {
