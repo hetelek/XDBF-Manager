@@ -127,3 +127,8 @@ void BinaryInjector::on_comboBox_currentIndexChanged(int index)
 {
     ui->lineEdit->setEnabled(index == 0);
 }
+
+void BinaryInjector::on_pushButton_2_clicked()
+{
+    close();
+}
