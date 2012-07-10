@@ -22,7 +22,6 @@ BinaryDialog::BinaryDialog(QWidget *parent, Setting_Entry *entry) : QDialog(pare
     ui->tableWidget->setColumnCount(columnHeaders.size());
     ui->tableWidget->setHorizontalHeaderLabels(columnHeaders);
 
-    bool end_loop = false;
     int l1 = (entry->binary.size < 0x10) ? 1 : entry->binary.size / 0x10;
     for(int i = 0; i < l1; i++)
     {
@@ -31,20 +30,26 @@ BinaryDialog::BinaryDialog(QWidget *parent, Setting_Entry *entry) : QDialog(pare
             if(x == 0)
             {
                 ui->tableWidget->insertRow(i);
-                ui->tableWidget->setVerticalHeaderItem(i, new QTableWidgetItem(QString::number(i, 16).toUpper()));
+
+                QString hexValueStr = QString::number(i, 16);
+                if(hexValueStr.length() < 2)
+                    hexValueStr = hexValueStr.insert(0, "0");
+                ui->tableWidget->setVerticalHeaderItem(i, new QTableWidgetItem(hexValueStr.toUpper()));
             }
 
             int index = i + (i * 0x10) + x;
 
             if(index + 1 > entry->binary.size)
             {
-                end_loop = true;
+                i = l1;
                 break;
             }
-            ui->tableWidget->setItem(i, x, new QTableWidgetItem(QString::number((unsigned char)entry->binary.data[index], 16).toUpper()));
+
+            QString hexValueStr = QString::number((unsigned char)entry->binary.data[index], 16).toUpper();
+            if(hexValueStr.length() < 2)
+                hexValueStr = hexValueStr.insert(0, "0");
+            ui->tableWidget->setItem(i, x, new QTableWidgetItem(hexValueStr));
         }
-        if(end_loop)
-            break;
     }
 }
 
