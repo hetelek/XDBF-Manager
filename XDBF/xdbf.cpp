@@ -953,7 +953,7 @@ void XDBF::injectSettingEntry(Setting_Entry *entry, unsigned long long id)
             if(entry->binary.size > 0x3E8)
                 throw "Binary data too large to inject. Max = 1000(0x3E8)";
 
-            int size = entry->binary.size + 0x14;
+            int size = entry->binary.size + 0x18;
             char *buffer = new char[size];
             memset(buffer, 0, size);
             writeSettingMetaData(buffer, id, SET_BINARY);
